@@ -1,0 +1,163 @@
+import React, { useState } from 'react';
+import api from '../api/axios'; // <-- Импортируем наш axios (убедись, что путь правильный)
+import { useFinanceStore } from '../store/useFinanceStore';
+import { toast } from '../components/ui/Toast';
+import { motion } from 'framer-motion';
+import { Mail, Lock, Eye, EyeOff, ChevronRight, Wallet } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+export default function Auth() {
+    const { t } = useTranslation();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [isReg, setIsReg] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // Получаем метод для обновления состояния после входа
+    const checkUser = useFinanceStore(s => s.checkUser);
+
+    const handleAuth = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            let response;
+            if (isReg) {
+                // Регистрация на твоем сервере
+                response = await api.post('/auth/register', { email, password });
+                toast.success(t('auth.welcome_back')); // Или "Аккаунт создан"
+            } else {
+                // Вход на твоем сервере
+                response = await api.post('/auth/login', { email, password });
+                toast.success(t('auth.welcome_back'));
+            }
+
+            // Сервер возвращает { token, user }
+            const { token } = response.data;
+
+            // Сохраняем токен в localStorage
+            localStorage.setItem('token', token);
+
+            // Обновляем состояние приложения (это перекинет нас на Dashboard)
+            await checkUser();
+
+        } catch (err) {
+            console.error("Auth error:", err);
+            // Пытаемся достать сообщение об ошибке от сервера
+            const msg = err.response?.data?.error || err.message || "Something went wrong";
+            toast.error(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-[100dvh] flex flex-col justify-center p-4 sm:p-6 relative overflow-hidden bg-[#f3f4f6]">
+            {/* Декоративные мягкие блики */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
+                <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-5%] right-[-5%] w-[60%] h-[30%] bg-amber-50/40 rounded-full blur-[100px]" />
+            </div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "circOut" }}
+                className="w-full max-w-sm sm:max-w-md mx-auto"
+            >
+                {/* Логотип */}
+                <div className="flex flex-col items-center mb-10">
+                    <div className="w-16 h-16 bg-white shadow-xl rounded-[20px] flex items-center justify-center mb-6 border border-white">
+                        <Wallet className="w-8 h-8 text-indigo-600" strokeWidth={1.5} />
+                    </div>
+                    <h1 className="text-center">Finance Empire</h1>
+                    <p className="mt-2 text-zinc-500 font-medium text-center">
+                        {isReg ? t('auth.create_capital') : t('auth.assets_control')}
+                    </p>
+                </div>
+
+                {/* Форма */}
+                <form onSubmit={handleAuth} className="space-y-6 mt-8">
+                    {/* Поле Email */}
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider ml-1">
+                            {t('auth.email_label')}
+                        </label>
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                                <Mail className="w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
+                            </div>
+                            <input
+                                type="email"
+                                placeholder="name@empire.com"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                required
+                                className="!pl-12 w-full py-4 bg-white border border-zinc-200 rounded-xl outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Поле Пароль */}
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider ml-1">
+                            {t('auth.password_label')}
+                        </label>
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                                <Lock className="w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
+                            </div>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                required
+                                className="!pl-12 !pr-12 w-full py-4 bg-white border border-zinc-200 rounded-xl outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-indigo-600 transition-colors z-10"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
+                    >
+                        {loading ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <>
+                                {isReg ? t('auth.create_account_btn') : t('auth.login_btn')}
+                                <ChevronRight size={20} />
+                            </>
+                        )}
+                    </button>
+                </form>
+
+                {/* Футер формы */}
+                <div className="mt-10 text-center">
+                    <p className="text-zinc-500 font-medium">
+                        {isReg ? t('auth.already_member') : t('auth.new_member')}
+                    </p>
+                    <button
+                        onClick={() => setIsReg(!isReg)}
+                        className="mt-2 text-zinc-900 font-bold text-lg hover:text-indigo-600 transition-colors inline-flex items-center gap-1"
+                    >
+                        {isReg ? t('auth.login_link') : t('auth.create_profile_link')}
+                    </button>
+                </div>
+
+                <p className="text-center mt-12 text-[10px] text-zinc-400 uppercase tracking-[0.3em] font-bold">
+                    © 2025 FINANCE EMPIRE PLATINUM
+                </p>
+            </motion.div>
+        </div>
+    );
+}

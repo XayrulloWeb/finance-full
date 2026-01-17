@@ -13,6 +13,7 @@ const recurringController = require('../controllers/recurringController');
 const financeController = require('../controllers/financeController');
 const adminController = require('../controllers/adminController');
 const adminMiddleware = require('../middleware/adminMiddleware');
+const aiController = require('../controllers/aiController');
 
 // Rate limiters
 const userLimiter = createUserRateLimit();
@@ -20,7 +21,14 @@ const authLimiter = createAuthRateLimit();
 
 // --- AUTH ---
 router.post('/auth/register', authLimiter, authController.register);
+
+
+router.get('/insights/smart', authMiddleware, userLimiter, dataController.getAiInsight);
+
+// Вход
 router.post('/auth/login', authLimiter, authController.login);
+
+router.post('/auth/verify', authLimiter, authController.verifyEmail);
 
 // --- DATA READ ---
 router.get('/dashboard', authMiddleware, userLimiter, dataController.getDashboard);
@@ -42,6 +50,15 @@ router.get('/analytics/summary', authMiddleware, userLimiter, dataController.get
 router.get('/calendar/summary', authMiddleware, userLimiter, dataController.getCalendarSummary);
 router.get('/data/bootstrap', authMiddleware, userLimiter, dataController.getBootstrapData);
 router.post('/data/import', authMiddleware, userLimiter, dataController.importData);
+
+// --- AI ---
+router.post('/ai/transaction-suggest', authMiddleware, userLimiter, aiController.suggestTransactionMeta);
+router.get('/ai/alerts', authMiddleware, userLimiter, aiController.getSmartAlerts);
+router.get('/ai/forecast', authMiddleware, userLimiter, aiController.getForecast);
+router.get('/ai/analytics-explain', authMiddleware, userLimiter, aiController.getAnalyticsExplanation);
+router.get('/ai/goals-advice', authMiddleware, userLimiter, aiController.getGoalsAdvice);
+router.get('/ai/debts-advice', authMiddleware, userLimiter, aiController.getDebtsAdvice);
+router.get('/ai/categories/suggest', authMiddleware, userLimiter, aiController.getCategorySuggestions);
 
 // --- TRANSACTIONS ---
 router.get('/transactions', authMiddleware, userLimiter, txController.getTransactions);

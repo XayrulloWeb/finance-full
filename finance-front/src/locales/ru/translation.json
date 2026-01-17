@@ -15,6 +15,7 @@
     "settings": {
         "title": "Настройки",
         "language": "Язык приложения",
+        "language_desc": "Выберите язык интерфейса",
         "general": "Общие",
         "accounts": "Счета",
         "categories": "Категории",
@@ -39,6 +40,14 @@
         "new_account_desc": "Добавьте карту, наличные или банковский вклад",
         "restore_categories": "Восстановить",
         "clear_categories": "Очистить",
+        "category_form": {
+            "icon": "Иконка",
+            "emoji": "Эмодзи",
+            "select_emoji": "Выбрать эмодзи",
+            "name": "Название",
+            "type": "Тип",
+            "name_required": "Введите название"
+        },
         "currency_modal_title": "Курс валют",
         "base_currency_info": "Базовая валюта: UZS. Укажите стоимость 1 единицы ин. валюты в сумах.",
         "save_rates": "Сохранить курсы"
@@ -85,7 +94,15 @@
             "income_btn": "Зачислить",
             "error_account": "Выберите счет",
             "error_amount": "Введите корректную сумму",
-            "error_category": "Выберите категорию"
+            "error_category": "Выберите категорию",
+            "ai_title": "AI‑подсказки",
+            "ai_suggest": "AI предлагает",
+            "ai_need_input": "Добавьте описание или сумму для подсказки.",
+            "ai_error": "Не удалось получить подсказку.",
+            "ai_use_category": "Использовать категорию",
+            "ai_use_counterparty": "Использовать контрагента",
+            "ai_new_categories": "Предложенные категории",
+            "ai_create": "Создать"
         },
         "transfer": {
             "title": "Перевод между счетами",
@@ -171,7 +188,9 @@
         "diff_last_month": "разница с прошлым месяцем",
         "advice_title": "Совет дня",
         "top_5": "Топ-5 категорий расходов в этом месяце",
-        "no_expenses": "Нет расходов в этом месяце."
+        "no_expenses": "Нет расходов в этом месяце.",
+        "ai_unavailable_title": "AI недоступен",
+        "ai_unavailable_message": "Подключите ключ или попробуйте позже."
     },
     "admin": {
         "title": "Панель администратора",
@@ -335,7 +354,7 @@
         "edit": "Изменить",
         "search": "Поиск...",
         "loading": "Загрузка...",
-        "confirm": "Вы уверены?",
+        "confirm": "Подтвердить",
         "success": "Успешно"
     },
     "auth": {
@@ -350,7 +369,19 @@
         "already_member": "Уже в системе?",
         "new_member": "Новый участник?",
         "login_link": "Войти в аккаунт",
-        "create_profile_link": "Создать профиль"
+        "create_profile_link": "Создать профиль",
+        "email_placeholder": "name@empire.com",
+        "phone_label": "Телефон",
+        "phone_placeholder": "+998901234567",
+        "method_email": "Email",
+        "method_phone": "Телефон",
+        "code_label": "Код подтверждения",
+        "back_to_method": "Назад к {{method}}",
+        "code_sent_to": "Введите код, отправленный на {{target}}",
+        "check_phone": "Проверьте SMS-код!",
+        "confirm_code_btn": "Подтвердить",
+        "need_verification": "Аккаунт не подтвержден. Введите код.",
+        "contact_fallback": "ваш контакт"
     },
     "history": {
         "title": "История",
@@ -512,5 +543,50 @@
         "yesterday": "Вчера",
         "earlier": "Ранее",
         "no_transactions": "В этот день операций не было"
+    },
+    "ai": {
+        "forecast": {
+            "title": "AI‑прогноз",
+            "message": "Если тратить как сейчас, к концу месяца будет около {{value}}."
+        },
+        "analytics_explain": {
+            "title": "AI‑объяснение",
+            "fallback": "AI не смог объяснить данные, попробуйте позже."
+        },
+        "goals_advice": {
+            "title": "AI‑совет по целям"
+        },
+        "debts_advice": {
+            "title": "AI‑совет по долгам"
+        },
+        "categories_suggest": {
+            "title": "AI идеи категорий",
+            "create": "Создать",
+            "create_all": "Создать все",
+            "subtitle": "На основе некатегоризованных операций.",
+            "empty": "Пока нет идей. Добавьте операции без категории, и появятся подсказки."
+        },
+        "alerts": {
+            "generic": {
+                "title": "Внимание",
+                "message": "Проверьте финансовую активность."
+            },
+            "spike": {
+                "title": "Скачок расходов",
+                "message": "Расходы выросли на {{percent}}% по сравнению с прошлой неделей."
+            },
+            "big_expense": {
+                "title": "Крупная трата",
+                "message": "Обнаружен крупный платеж примерно на {{amount}}."
+            },
+            "new_counterparty": {
+                "title": "Новый контрагент",
+                "message": "Появился новый контрагент в расходах."
+            },
+            "recurring": {
+                "title": "Повторяющиеся списания",
+                "message": "Повторяется платеж (~{{amount}}) уже {{count}} раза."
+            }
+        }
     }
 }

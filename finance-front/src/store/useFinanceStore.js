@@ -11,6 +11,7 @@ import { createTransactionSlice } from './slices/transactionSlice';
 import { createFinanceSlice } from './slices/financeSlice';
 import { createInsightsSlice } from './slices/insightsSlice';
 import { createUiSlice } from './slices/uiSlice';
+import { createAiSlice } from './slices/aiSlice';
 
 export const useFinanceStore = create((set, get) => ({
   ...createUserSlice(set, get),
@@ -18,6 +19,7 @@ export const useFinanceStore = create((set, get) => ({
   ...createTransactionSlice(set, get),
   ...createFinanceSlice(set, get),
   ...createInsightsSlice(set, get),
+  ...createAiSlice(set, get),
   ...createUiSlice(set, get),
 
   analyticsSummary: null,

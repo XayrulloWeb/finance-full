@@ -15,6 +15,7 @@
     "settings": {
         "title": "Sozlamalar",
         "language": "Ilova tili",
+        "language_desc": "Interfeys tilini tanlang",
         "general": "Umumiy",
         "accounts": "Hisoblar",
         "categories": "Kategoriyalar",
@@ -39,6 +40,14 @@
         "new_account_desc": "Karta, naqd pul yoki bank omonatini qo'shing",
         "restore_categories": "Tiklash",
         "clear_categories": "Tozalash",
+        "category_form": {
+            "icon": "Belgi",
+            "emoji": "Emoji",
+            "select_emoji": "Emojini tanlang",
+            "name": "Nomi",
+            "type": "Turi",
+            "name_required": "Nomi majburiy"
+        },
         "currency_modal_title": "Valyuta kurslari",
         "base_currency_info": "Asosiy valyuta: UZS. 1 birlik xorijiy valyuta qiymatini so'mda kiriting.",
         "save_rates": "Kurslarni saqlash"
@@ -85,7 +94,15 @@
             "income_btn": "Kiritish",
             "error_account": "Hisobni tanlang",
             "error_amount": "To'g'ri summani kiriting",
-            "error_category": "Kategoriyani tanlang"
+            "error_category": "Kategoriyani tanlang",
+            "ai_title": "AI tavsiyasi",
+            "ai_suggest": "Tavsiya",
+            "ai_need_input": "Izoh yoki summani kiriting.",
+            "ai_error": "AI tavsiyasi olinmadi",
+            "ai_use_category": "Kategoriya tanlash",
+            "ai_use_counterparty": "Kontragent tanlash",
+            "ai_new_categories": "Tavsiya qilingan kategoriyalar",
+            "ai_create": "Yaratish"
         },
         "transfer": {
             "title": "Hisoblararo o'tkazma",
@@ -113,7 +130,9 @@
         "total_balance": "Umumiy balans",
         "monthly_income": "Oylik daromad",
         "monthly_expense": "Oylik xarajat",
-        "quick_actions": "Tezkor amallar",
+        "quick_actions": {
+            "title": "⚡ Tezkor amallar"
+        },
         "add_transaction": "Qo'shish",
         "recent_activity": "Oxirgi amallar",
         "trends": {
@@ -121,9 +140,6 @@
             "days": "kun",
             "income": "Kirim",
             "expense": "Chiqim"
-        },
-        "quick_actions": {
-            "title": "⚡ Tezkor amallar"
         },
         "balance_card": {
             "total_capital": "Umumiy kapital"
@@ -172,7 +188,9 @@
         "diff_last_month": "o'tgan oyga nisbatan farq",
         "advice_title": "Kun maslahati",
         "top_5": "Top-5 xarajat kategoriyalari",
-        "no_expenses": "Bu oyda xarajatlar yo'q."
+        "no_expenses": "Bu oyda xarajatlar yo'q.",
+        "ai_unavailable_title": "AI-insayt vaqtincha mavjud emas",
+        "ai_unavailable_message": "Keyinroq urinib ko'ring yoki ma'lumotlarni yangilang."
     },
     "admin": {
         "title": "Administrator paneli",
@@ -351,7 +369,19 @@
         "already_member": "Tizimda bormisiz?",
         "new_member": "Yangi a'zomisiz?",
         "login_link": "Hisobga kirish",
-        "create_profile_link": "Profil yaratish"
+        "create_profile_link": "Profil yaratish",
+        "email_placeholder": "name@empire.com",
+        "phone_label": "Telefon",
+        "phone_placeholder": "+998901234567",
+        "method_email": "Email",
+        "method_phone": "Telefon",
+        "code_label": "Tasdiqlash kodi",
+        "back_to_method": "{{method}}ga qaytish",
+        "code_sent_to": "{{target}} ga yuborilgan kodni kiriting",
+        "check_phone": "SMS-kodni tekshiring!",
+        "confirm_code_btn": "Tasdiqlash",
+        "need_verification": "Hisob tasdiqlanmagan. Kodni kiriting.",
+        "contact_fallback": "kontakt"
     },
     "history": {
         "title": "Tarix",
@@ -379,6 +409,7 @@
         "title": "Analitika",
         "subtitle": "Bu oy uchun moliyaviy puls",
         "current_balance": "Joriy balans",
+        "create": "Yaratish",
         "income": "Kirimlar",
         "expenses": "Xarajatlar",
         "savings": "Jamg'armalar",
@@ -400,6 +431,7 @@
         "no_data": "Ma'lumot yo'q",
         "budget_modal_title": "Budjet",
         "select_category": "Kategoriyani tanlang",
+        "save": "Saqlash",
         "drilldown_title": "Batafsil",
         "no_description": "Izohsiz",
         "no_transactions": "Operatsiyalar yo'q"
@@ -512,5 +544,50 @@
         "today": "Bugun",
         "yesterday": "Kecha",
         "earlier": "Oldinroq"
+    },
+    "ai": {
+        "forecast": {
+            "title": "AI prognoz",
+            "message": "Shu tempda davom etsangiz, xarajatlar {{value}} ga yetishi mumkin."
+        },
+        "analytics_explain": {
+            "title": "AI izoh",
+            "fallback": "Ma?lumotlar tayyor bo?lganda AI izoh beradi."
+        },
+        "goals_advice": {
+            "title": "AI maqsad maslahati"
+        },
+        "debts_advice": {
+            "title": "AI qarz maslahati"
+        },
+        "categories_suggest": {
+            "title": "AI kategoriya g?oyalari",
+            "create": "Yaratish",
+            "create_all": "Hammasini yaratish",
+            "subtitle": "Toifalanmagan tranzaksiyalar asosida.",
+            "empty": "Hozircha taklif yo'q. Takliflar uchun toifalanmagan tranzaksiyalar kerak."
+        },
+        "alerts": {
+            "generic": {
+                "title": "AI xabar",
+                "message": "So?nggi faoliyatni tekshiring."
+            },
+            "spike": {
+                "title": "Xarajatlar oshdi",
+                "message": "Xarajatlar o?tgan haftaga nisbatan {{percent}}% oshdi."
+            },
+            "big_expense": {
+                "title": "Katta xarajat",
+                "message": "{{amount}} miqdorida katta xarajat qayd etildi."
+            },
+            "new_counterparty": {
+                "title": "Yangi kontragent",
+                "message": "Xarajatlarda yangi kontragent paydo bo?ldi."
+            },
+            "recurring": {
+                "title": "Takroriy xarajat",
+                "message": "Takroriy to?lov (~{{amount}}) {{count}} marta uchradi."
+            }
+        }
     }
 }

@@ -2,7 +2,7 @@
 const prisma = require('../lib/prisma');
 const BalanceService = require('../services/balanceService');
 const { ensureAccountOwnership, ensureCategoryOwnership, ensureOptionalCounterpartyOwnership } = require('../lib/ownership');
-
+const AiService = require('../services/aiService'); 
 // --- GOALS ---
 exports.createGoal = async (req, res) => {
     try {
@@ -46,7 +46,15 @@ exports.deleteGoal = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
+exports.getAiInsight = async (req, res) => {
+    // ?????????????????? ???????????????????? ????????, ?????????????? ???????????? ????????????????????????
+    const headerLang = req.headers['x-app-lang'] || req.headers['accept-language'];
+    const requestedLang = req.query.lang || headerLang || '';
+    const normalizedLang = String(requestedLang).split(',')[0].trim().toLowerCase();
+    const lang = normalizedLang.startsWith('uz') ? 'uz' : normalizedLang.startsWith('en') ? 'en' : 'ru';
+    const insight = await AiService.getDailyInsight(req.user.id, lang);
+    res.json(insight);
+};
 exports.topUpGoal = async (req, res) => {
     const { amount, accountId } = req.body;
     const goalId = req.params.id;

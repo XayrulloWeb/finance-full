@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAx
 import { format, startOfMonth, endOfMonth, parseISO, isValid } from 'date-fns';
 import { ru, enUS, uz } from 'date-fns/locale';
 import GlassCard from '../components/ui/GlassCard';
+import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import api from '../api/axios';
@@ -60,6 +61,9 @@ const CustomTooltip = ({ active, payload, label, currency }) => {
 export default function Analytics() {
     const { t, i18n } = useTranslation(); // Init hook
     const store = useFinanceStore();
+    const fetchAiAnalyticsExplanation = useFinanceStore(s => s.fetchAiAnalyticsExplanation);
+    const aiAnalyticsExplanation = useFinanceStore(s => s.aiAnalyticsExplanation);
+    const isAiAnalyticsLoading = useFinanceStore(s => s.isAiAnalyticsLoading);
 
     // Mapping for date-fns locales
     const dateLocales = {
@@ -89,6 +93,12 @@ export default function Analytics() {
             store.fetchAnalyticsSummary();
         }
     }, [store.analyticsSummary, store.isAnalyticsSummaryLoading, store.fetchAnalyticsSummary]);
+
+    useEffect(() => {
+        if (!aiAnalyticsExplanation && !isAiAnalyticsLoading) {
+            fetchAiAnalyticsExplanation();
+        }
+    }, [aiAnalyticsExplanation, isAiAnalyticsLoading, fetchAiAnalyticsExplanation]);
 
     // 1. Totals (Current Month)
     const totals = store.analyticsSummary?.totals ? {
@@ -219,6 +229,18 @@ export default function Analytics() {
                     delay={0.3}
                 />
             </div>
+
+            {/* AI Explanation */}
+            {isAiAnalyticsLoading && !aiAnalyticsExplanation ? (
+                <SkeletonLoader type="card" count={1} />
+            ) : aiAnalyticsExplanation ? (
+                <GlassCard className="border border-indigo-100 bg-white/80">
+                    <div className="text-xs font-bold uppercase text-zinc-400 mb-2">{t('ai.analytics_explain.title')}</div>
+                    <div className="text-sm font-semibold text-zinc-700">
+                        {aiAnalyticsExplanation.message || t('ai.analytics_explain.fallback')}
+                    </div>
+                </GlassCard>
+            ) : null}
 
             {/* 2. MAIN BENTO GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

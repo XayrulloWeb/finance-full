@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { TrendingUp, TrendingDown, Activity, AlertTriangle, Lightbulb, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Lightbulb } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import SkeletonLoader from '../components/ui/SkeletonLoader';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,9 @@ export default function Insights() {
     const fetchInsights = useFinanceStore(s => s.fetchInsights);
     const insights = useFinanceStore(s => s.insightsData);
     const isLoading = useFinanceStore(s => s.isInsightsLoading);
+    const fetchAiInsight = useFinanceStore(s => s.fetchAiInsight);
+    const aiInsight = useFinanceStore(s => s.aiInsight);
+    const isAiLoading = useFinanceStore(s => s.isAiInsightLoading);
 
     // 2. Загружаем данные при первом рендере компонента
     useEffect(() => {
@@ -20,7 +23,29 @@ export default function Insights() {
         }
     }, [fetchInsights, insights]);
 
+    useEffect(() => {
+        if (!aiInsight) {
+            fetchAiInsight();
+        }
+    }, [fetchAiInsight, aiInsight]);
+
     const formatCurrency = (val) => new Intl.NumberFormat(i18n.language === 'uz' ? 'uz-UZ' : i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(Math.round(val || 0));
+
+    const aiDisplay = aiInsight || {
+        mood: 'neutral',
+        title: t('insights.ai_unavailable_title'),
+        message: t('insights.ai_unavailable_message'),
+        icon: null
+    };
+
+    const moodStyles = {
+        success: 'from-emerald-500 to-teal-600',
+        warning: 'from-amber-500 to-orange-500',
+        danger: 'from-rose-500 to-red-600',
+        neutral: 'from-slate-500 to-slate-600'
+    };
+
+    const aiMoodClass = moodStyles[aiDisplay.mood] || moodStyles.neutral;
 
     // 3. Добавляем состояние загрузки для лучшего UX
     if (isLoading || !insights) {
@@ -62,14 +87,28 @@ export default function Insights() {
                         {`${formatCurrency(Math.abs(thisMonthExpenses - lastMonthExpenses))} ${t('insights.diff_last_month')}`}
                     </div>
                 </GlassCard>
-                <GlassCard className="space-y-2 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white" hover={false}>
-                    <div className="text-indigo-100 text-sm font-bold uppercase flex items-center gap-2">
-                        <Wallet size={16} strokeWidth={2.5} /> {t('insights.advice_title')}
-                    </div>
-                    <p className="text-sm text-indigo-200 font-medium">
-                        {t('dashboard.alerts.advice')}
-                    </p>
-                </GlassCard>
+                <div>
+                    {isAiLoading && !aiInsight ? (
+                        <SkeletonLoader type="card" count={1} />
+                    ) : (
+                        <GlassCard className="space-y-3 relative overflow-hidden text-white" hover={false}>
+                            <div className={`absolute inset-0 opacity-90 bg-gradient-to-br ${aiMoodClass}`} />
+                            <div className="relative z-10">
+                                <div className="text-white/80 text-sm font-bold uppercase flex items-center gap-2">
+                                    {aiDisplay.icon ? (
+                                        <span className="text-2xl">{aiDisplay.icon}</span>
+                                    ) : (
+                                        <Lightbulb size={18} strokeWidth={2.5} />
+                                    )}
+                                    {t('insights.advice_title')}
+                                </div>
+                                <div className="text-xl font-black mt-3">{aiDisplay.title}</div>
+                                <p className="text-sm text-white/90 font-medium mt-2">{aiDisplay.message}</p>
+                            </div>
+                        </GlassCard>
+                    )}
+                </div>
+
             </div>
 
             {/* TRENDS */}

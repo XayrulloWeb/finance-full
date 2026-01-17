@@ -47,6 +47,7 @@
     "settings": {
         "title": "Settings",
         "language": "App Language",
+        "language_desc": "Select interface language",
         "general": "General",
         "accounts": "Accounts",
         "categories": "Categories",
@@ -71,6 +72,14 @@
         "new_account_desc": "Add card, cash, or bank deposit",
         "restore_categories": "Restore",
         "clear_categories": "Clear",
+        "category_form": {
+            "icon": "Icon",
+            "emoji": "Emoji",
+            "select_emoji": "Select emoji",
+            "name": "Name",
+            "type": "Type",
+            "name_required": "Name is required"
+        },
         "currency_modal_title": "Currency Rates",
         "base_currency_info": "Base currency: UZS. Enter value of 1 unit of foreign currency in sums.",
         "save_rates": "Save Rates"
@@ -92,9 +101,21 @@
         "create_capital": "Create your digital capital",
         "assets_control": "Your assets under control",
         "email_label": "Email",
+        "email_placeholder": "name@empire.com",
+        "phone_label": "Phone",
+        "phone_placeholder": "+998901234567",
+        "method_email": "Email",
+        "method_phone": "Phone",
         "password_label": "Password",
+        "code_label": "Verification Code",
+        "back_to_method": "Back to {{method}}",
+        "code_sent_to": "Enter the code sent to {{target}}",
+        "confirm_code_btn": "Confirm",
+        "need_verification": "Account is not verified. Enter the code.",
+        "contact_fallback": "your contact",
         "create_account_btn": "Create Account",
         "login_btn": "Login",
+        "check_phone": "Check your phone!",
         "already_member": "Already a member?",
         "new_member": "New member?",
         "login_link": "Login to account",
@@ -126,6 +147,7 @@
         "title": "Analytics",
         "subtitle": "Financial pulse for this month",
         "current_balance": "Current Balance",
+        "create": "Create",
         "income": "Income",
         "expenses": "Expenses",
         "savings": "Savings",
@@ -147,6 +169,7 @@
         "no_data": "No data",
         "budget_modal_title": "Budget",
         "select_category": "Select Category",
+        "save": "Save",
         "drilldown_title": "Drilldown",
         "no_description": "No description",
         "no_transactions": "No transactions"
@@ -302,7 +325,15 @@
             "income_btn": "Deposit",
             "error_account": "Select account",
             "error_amount": "Enter valid amount",
-            "error_category": "Select category"
+            "error_category": "Select category",
+            "ai_title": "AI suggestion",
+            "ai_suggest": "Suggest",
+            "ai_need_input": "Add a comment or amount to get suggestions.",
+            "ai_error": "AI suggestion failed",
+            "ai_use_category": "Use category",
+            "ai_use_counterparty": "Use counterparty",
+            "ai_new_categories": "Suggested categories",
+            "ai_create": "Create"
         },
         "transfer": {
             "title": "Transfer between accounts",
@@ -356,7 +387,9 @@
         "diff_last_month": "diff from last month",
         "advice_title": "Tip of the Day",
         "top_5": "Top 5 Expense Categories",
-        "no_expenses": "No expenses this month."
+        "no_expenses": "No expenses this month.",
+        "ai_unavailable_title": "AI insight is unavailable",
+        "ai_unavailable_message": "Try again later or update your data."
     },
     "admin": {
         "title": "Admin Dashboard",
@@ -511,5 +544,50 @@
         "cats_cleared": "All categories cleared",
         "cats_clear_error": "Error clearing categories",
         "initial_balance": "Initial Balance"
+    },
+    "ai": {
+        "forecast": {
+            "title": "AI Forecast",
+            "message": "If you keep this pace, monthly expenses may reach {{value}}."
+        },
+        "analytics_explain": {
+            "title": "AI Insight",
+            "fallback": "AI will explain the charts once data is ready."
+        },
+        "goals_advice": {
+            "title": "AI Goal Tip"
+        },
+        "debts_advice": {
+            "title": "AI Debt Tip"
+        },
+        "categories_suggest": {
+            "title": "AI Category Ideas",
+            "create": "Create",
+            "create_all": "Create all",
+            "subtitle": "Based on uncategorized activity.",
+            "empty": "No new ideas yet. Add uncategorized transactions to get suggestions."
+        },
+        "alerts": {
+            "generic": {
+                "title": "Insight",
+                "message": "Check your latest activity for details."
+            },
+            "spike": {
+                "title": "Spending spike",
+                "message": "Expenses are up {{percent}}% vs last week."
+            },
+            "big_expense": {
+                "title": "Large expense detected",
+                "message": "A big charge of {{amount}} was recorded."
+            },
+            "new_counterparty": {
+                "title": "New counterparty",
+                "message": "A new payee appears in recent expenses."
+            },
+            "recurring": {
+                "title": "Recurring expense",
+                "message": "A repeated charge (~{{amount}}) appears {{count}} times."
+            }
+        }
     }
 }

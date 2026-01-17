@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useFinanceStore } from '../../store/useFinanceStore';
+import { useTranslation } from 'react-i18next';
 
 export default function SmartAlerts() {
+    const { t } = useTranslation();
     const store = useFinanceStore();
+    const fetchAiAlerts = useFinanceStore(s => s.fetchAiAlerts);
+    const aiAlerts = useFinanceStore(s => s.aiAlerts);
+    const isAiAlertsLoading = useFinanceStore(s => s.isAiAlertsLoading);
+
+    useEffect(() => {
+        if (!aiAlerts || aiAlerts.length === 0) {
+            fetchAiAlerts();
+        }
+    }, [fetchAiAlerts, aiAlerts]);
 
     const getSmartAlerts = () => {
         const alerts = [];
+
+        (aiAlerts || []).forEach((alert) => {
+            const code = alert.code || 'generic';
+            const dataPayload = alert.data || {};
+            const title = alert.title || t(`ai.alerts.${code}.title`, dataPayload);
+            const message = alert.message || t(`ai.alerts.${code}.message`, dataPayload);
+            alerts.push({
+                type: alert.type || 'warning',
+                icon: alert.type === 'danger' ? '??' : alert.type === 'success' ? '?' : '?',
+                title,
+                message,
+                action: null
+            });
+        });
+
 
         // 1. Бюджеты
         store.budgets.forEach(budget => {
@@ -40,6 +66,7 @@ export default function SmartAlerts() {
 
     const alerts = getSmartAlerts();
 
+    if (isAiAlertsLoading && alerts.length === 0) return null;
     if (alerts.length === 0) return null;
 
     return (

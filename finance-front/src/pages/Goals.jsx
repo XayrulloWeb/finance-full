@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { Plus, Target, Trophy, Clock, DollarSign, Trash2 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
+import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { motion } from 'framer-motion';
@@ -12,6 +13,9 @@ import { useTranslation } from 'react-i18next';
 export default function Goals() {
     const { t, i18n } = useTranslation();
     const { goals, addGoal, deleteGoal, addMoneyToGoal, accounts, settings } = useFinanceStore();
+    const fetchAiGoalsAdvice = useFinanceStore(s => s.fetchAiGoalsAdvice);
+    const aiGoalsAdvice = useFinanceStore(s => s.aiGoalsAdvice);
+    const isAiGoalsLoading = useFinanceStore(s => s.isAiGoalsLoading);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [topUpGoal, setTopUpGoal] = useState(null); // Goal object to top up
 
@@ -51,6 +55,10 @@ export default function Goals() {
         }).format(amount);
     };
 
+    useEffect(() => {
+        fetchAiGoalsAdvice();
+    }, [fetchAiGoalsAdvice]);
+
     return (
         <div className="space-y-8 sm:space-y-10 animate-fade-in pb-28 sm:pb-32 custom-scrollbar">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -63,6 +71,16 @@ export default function Goals() {
                 </div>
                 <Button onClick={() => setIsCreateModalOpen(true)} icon={Plus}>{t('goals.new_goal')}</Button>
             </div>
+
+            {/* AI Advice */}
+            {isAiGoalsLoading && !aiGoalsAdvice ? (
+                <SkeletonLoader type="card" count={1} />
+            ) : aiGoalsAdvice?.message ? (
+                <GlassCard className="relative overflow-hidden">
+                    <div className="text-xs font-bold uppercase text-zinc-400 mb-2">{t('ai.goals_advice.title')}</div>
+                    <div className="text-sm font-semibold text-zinc-700">{aiGoalsAdvice.message}</div>
+                </GlassCard>
+            ) : null}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {goals.map((goal, idx) => {

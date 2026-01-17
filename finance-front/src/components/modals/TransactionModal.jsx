@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
+import api from '../../api/axios';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { toast } from '../ui/Toast';
@@ -16,6 +17,8 @@ export default function TransactionModal({
     const { t, i18n } = useTranslation();
     const store = useFinanceStore();
     const [loading, setLoading] = useState(false);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiSuggestion, setAiSuggestion] = useState(null);
 
     // Modes: Category or Counterparty
     const [txMode, setTxMode] = useState('category');
@@ -33,6 +36,7 @@ export default function TransactionModal({
     // Init functionality (same as before)
     useEffect(() => {
         if (isOpen) {
+            setAiSuggestion(null);
             if (editingTransaction) {
                 // EDIT MODE
                 setForm({
@@ -68,6 +72,26 @@ export default function TransactionModal({
     }, [isOpen, editingTransaction, initialType, initialCategoryName, initialAccountId, store.accounts, store.categories]);
 
     const categories = store.categories.filter(c => c.type === form.type);
+
+    const handleAiSuggest = async () => {
+        if (!form.comment && !form.amount) {
+            return toast.error(t('modals.transaction.ai_need_input'));
+        }
+        setAiLoading(true);
+        try {
+            const { data } = await api.post('/ai/transaction-suggest', {
+                type: form.type,
+                comment: form.comment,
+                amount: Number(form.amount) || null
+            });
+            setAiSuggestion(data);
+        } catch (error) {
+            console.error('AI Suggest Error:', error);
+            toast.error(t('modals.transaction.ai_error'));
+        } finally {
+            setAiLoading(false);
+        }
+    };
 
     const handleSubmit = async () => {
         // --- VALIDATION ---
@@ -184,6 +208,64 @@ export default function TransactionModal({
                             <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.transaction.comment_label')}</label>
                             <input type="text" placeholder="..." className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors" value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} />
                         </div>
+                    </div>
+
+                    {/* AI Suggestion */}
+                    <div className="rounded-2xl border border-zinc-200 bg-white/70 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="text-xs font-bold uppercase text-zinc-500">{t('modals.transaction.ai_title')}</div>
+                            <button
+                                onClick={handleAiSuggest}
+                                className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                                disabled={aiLoading}
+                            >
+                                {aiLoading ? t('common.loading') : t('modals.transaction.ai_suggest')}
+                            </button>
+                        </div>
+                        {aiSuggestion?.category && (
+                            <button
+                                className="w-full text-left text-sm font-bold text-zinc-700 bg-zinc-50 px-3 py-2 rounded-xl hover:bg-zinc-100"
+                                onClick={() => {
+                                    setTxMode('category');
+                                    setForm(prev => ({ ...prev, category_id: aiSuggestion.category.id || prev.category_id }));
+                                }}
+                            >
+                                {t('modals.transaction.ai_use_category')}: {aiSuggestion.category.name}
+                            </button>
+                        )}
+                        {aiSuggestion?.counterparty && (
+                            <button
+                                className="w-full text-left text-sm font-bold text-zinc-700 bg-zinc-50 px-3 py-2 rounded-xl hover:bg-zinc-100"
+                                onClick={() => {
+                                    setTxMode('counterparty');
+                                    setForm(prev => ({ ...prev, counterparty_id: aiSuggestion.counterparty.id || prev.counterparty_id }));
+                                }}
+                            >
+                                {t('modals.transaction.ai_use_counterparty')}: {aiSuggestion.counterparty.name}
+                            </button>
+                        )}
+                        {Array.isArray(aiSuggestion?.new_category_suggestions) && aiSuggestion.new_category_suggestions.length > 0 && (
+                            <div className="space-y-2">
+                                <div className="text-[11px] font-bold uppercase text-zinc-400">{t('modals.transaction.ai_new_categories')}</div>
+                                {aiSuggestion.new_category_suggestions.map((item, idx) => (
+                                    <div key={`${item.name}-${idx}`} className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-zinc-100">
+                                        <div className="flex items-center gap-2 text-sm font-bold text-zinc-700">
+                                            <span className="text-lg">{item.icon || '🧾'}</span>
+                                            {item.name}
+                                        </div>
+                                        <button
+                                            className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg hover:bg-emerald-100"
+                                            onClick={() => store.createCategory(item.name, item.type || form.type, item.icon || '🧾', item.color)}
+                                        >
+                                            {t('modals.transaction.ai_create')}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {aiSuggestion?.reason && (
+                            <div className="text-xs text-zinc-500">{aiSuggestion.reason}</div>
+                        )}
                     </div>
                 </div>
 

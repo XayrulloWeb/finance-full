@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { Plus, Trash2, CheckCircle, ArrowUpRight, ArrowDownLeft, Calendar, User, Wallet } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
+import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { toast } from '../components/ui/Toast';
@@ -12,11 +13,18 @@ import { useTranslation } from 'react-i18next';
 export default function Debts() {
     const { t, i18n } = useTranslation();
     const { debts, addDebt, payDebt, deleteDebt, accounts } = useFinanceStore();
+    const fetchAiDebtsAdvice = useFinanceStore(s => s.fetchAiDebtsAdvice);
+    const aiDebtsAdvice = useFinanceStore(s => s.aiDebtsAdvice);
+    const isAiDebtsLoading = useFinanceStore(s => s.isAiDebtsLoading);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [payModalDebt, setPayModalDebt] = useState(null);
     const [viewHistoryDebt, setViewHistoryDebt] = useState(null);
     const [payAmount, setPayAmount] = useState('');
     const [payAccountId, setPayAccountId] = useState(accounts?.[0]?.id || '');
+
+    useEffect(() => {
+        fetchAiDebtsAdvice();
+    }, [fetchAiDebtsAdvice]);
 
     const [form, setForm] = useState({ name: '', amount: '', type: 'i_owe', due_date: '', contact_phone: '' });
 
@@ -70,6 +78,16 @@ export default function Debts() {
                 </div>
                 <Button onClick={() => setIsCreateModalOpen(true)} icon={Plus}>{t('debts.new_record')}</Button>
             </div>
+
+            {/* AI Advice */}
+            {isAiDebtsLoading && !aiDebtsAdvice ? (
+                <SkeletonLoader type="card" count={1} />
+            ) : aiDebtsAdvice?.message ? (
+                <GlassCard className="relative overflow-hidden">
+                    <div className="text-xs font-bold uppercase text-zinc-400 mb-2">{t('ai.debts_advice.title')}</div>
+                    <div className="text-sm font-semibold text-zinc-700">{aiDebtsAdvice.message}</div>
+                </GlassCard>
+            ) : null}
 
             {/* SUMMARY CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

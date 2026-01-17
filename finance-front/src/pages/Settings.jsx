@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Trash2, Plus, LogOut, User, Wallet, Tag, Shield, Download, Upload, Globe, ChevronRight, Zap, RefreshCw } from 'lucide-react';
+import { Trash2, Plus, LogOut, User, Wallet, Tag, Shield, Download, Upload, Globe, ChevronRight, Zap, RefreshCw, Sparkles } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -13,8 +13,69 @@ import ImportModal from '../components/modals/ImportModal';
 
 import { useTranslation } from 'react-i18next'; // Import hook
 
+const EMOJI_OPTIONS = [
+  '\u{1F354}',
+  '\u{1F355}',
+  '\u{1F37A}',
+  '\u2615',
+  '\u{1F6D2}',
+  '\u{1F6CD}\u{FE0F}',
+  '\u{1F381}',
+  '\u{1F48A}',
+  '\u{1FA78}',
+  '\u{1F393}',
+  '\u{1F4DA}',
+  '\u{1F4BC}',
+  '\u{1F4B8}',
+  '\u{1F4B0}',
+  '\u{1F4B3}',
+  '\u{1F3E0}',
+  '\u{1F4A1}',
+  '\u{1F6BF}',
+  '\u{1F695}',
+  '\u2708\u{FE0F}',
+  '\u{1F3AE}',
+  '\u{1F3AC}',
+  '\u{1F3B5}',
+  '\u{1F4AA}',
+  '\u26BD',
+  '\u{1F487}',
+  '\u{1F485}',
+  '\u{1F476}',
+  '\u{1F43E}',
+  '\u{1F436}',
+  '\u{1F431}',
+  '\u{1F6E0}\u{FE0F}',
+  '\u{1F527}',
+  '\u{1F9F9}',
+  '\u{1F4C5}',
+  '\u{1F514}',
+  '\u26A0\u{FE0F}',
+  '\u{1F525}',
+  '\u2764\u{FE0F}',
+  '\u2728',
+  '\u{1F966}',
+  '\u{1F34E}',
+  '\u{1F68D}',
+  '\u{1F6B2}',
+  '\u{1F3E5}',
+  '\u{1F457}',
+  '\u{1F45F}',
+  '\u{1F3A9}',
+  '\u{1F453}',
+  '\u{1F48D}',
+  '\u{1F4F7}',
+  '\u{1F4F9}',
+  '\u{1F4DE}',
+  '\u{1F50B}',
+  '\u{1F50C}'
+];
+
 export default function Settings() {
   const store = useFinanceStore();
+  const fetchAiCategorySuggestions = useFinanceStore(s => s.fetchAiCategorySuggestions);
+  const aiCategorySuggestions = useFinanceStore(s => s.aiCategorySuggestions);
+  const isAiCategoriesLoading = useFinanceStore(s => s.isAiCategoriesLoading);
   const { t, i18n } = useTranslation(); // Init hook
 
   // Tabs State
@@ -31,7 +92,9 @@ export default function Settings() {
   // Category Form
   const [newCatName, setNewCatName] = useState('');
   const [newCatType, setNewCatType] = useState('expense');
-  const [newCatIcon, setNewCatIcon] = useState('📌');
+  const [newCatIcon, setNewCatIcon] = useState('\u{1F4CC}');
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [aiCreatedNames, setAiCreatedNames] = useState([]);
 
   // --- HANDLERS ---
   const changeLanguage = (lng) => {
@@ -47,9 +110,10 @@ export default function Settings() {
   };
 
   const handleCreateCategory = async () => {
-    if (!newCatName) return toast.error(t('settings.categories') + ': Name required');
+    if (!newCatName.trim()) return toast.error(t('settings.category_form.name_required'));
     await store.createCategory(newCatName, newCatType, newCatIcon);
     setNewCatName('');
+    setIsEmojiOpen(false);
     toast.success(t('common.save'));
   };
 
@@ -57,20 +121,55 @@ export default function Settings() {
     if (!confirm(t('common.confirm'))) return;
 
     const defaultCategories = [
-      { name: t('category_names.salary'), type: 'income', icon: '💰', color: '#10b981' },
-      { name: t('category_names.freelance'), type: 'income', icon: '💻', color: '#3b82f6' },
-      { name: t('category_names.groceries'), type: 'expense', icon: '🛒', color: '#ef4444' },
-      { name: t('category_names.transport'), type: 'expense', icon: '🚕', color: '#f59e0b' },
-      { name: t('category_names.cafe'), type: 'expense', icon: '☕', color: '#8b5cf6' },
-      { name: t('category_names.home'), type: 'expense', icon: '🏠', color: '#0ea5e9' },
-      { name: t('category_names.communication'), type: 'expense', icon: '📱', color: '#3b82f6' },
-      { name: t('category_names.transfers'), type: 'transfer', icon: '🔄', color: '#64748b' }
+      { name: t('category_names.salary'), type: 'income', icon: '\u{1F4B0}', color: '#10b981' },
+      { name: t('category_names.freelance'), type: 'income', icon: '\u{1F4BB}', color: '#3b82f6' },
+      { name: t('category_names.groceries'), type: 'expense', icon: '\u{1F6D2}', color: '#ef4444' },
+      { name: t('category_names.transport'), type: 'expense', icon: '\u{1F695}', color: '#f59e0b' },
+      { name: t('category_names.cafe'), type: 'expense', icon: '\u2615', color: '#8b5cf6' },
+      { name: t('category_names.home'), type: 'expense', icon: '\u{1F3E0}', color: '#0ea5e9' },
+      { name: t('category_names.communication'), type: 'expense', icon: '\u{1F4F1}', color: '#3b82f6' },
+      { name: t('category_names.transfers'), type: 'transfer', icon: '\u{1F504}', color: '#64748b' }
     ];
 
     for (const cat of defaultCategories) {
       await store.createCategory(cat.name, cat.type, cat.icon, cat.color);
     }
     toast.success('Categories restored');
+  };
+
+  const visibleAiSuggestions = aiCategorySuggestions.filter(item => item?.name && !aiCreatedNames.includes(item.name));
+
+  useEffect(() => {
+    if (activeTab === 'categories') {
+      fetchAiCategorySuggestions();
+    }
+  }, [activeTab, fetchAiCategorySuggestions]);
+
+  const handleCreateAiSuggestion = async (suggestion) => {
+    if (!suggestion?.name) return;
+    await store.createCategory(
+      suggestion.name,
+      suggestion.type || 'expense',
+      suggestion.icon || '\u2728',
+      suggestion.color
+    );
+    setAiCreatedNames(prev => Array.from(new Set([...prev, suggestion.name])));
+  };
+
+  const handleCreateAllAiSuggestions = async () => {
+    if (visibleAiSuggestions.length === 0) return;
+    for (const suggestion of visibleAiSuggestions) {
+      await store.createCategory(
+        suggestion.name,
+        suggestion.type || 'expense',
+        suggestion.icon || '\u2728',
+        suggestion.color
+      );
+    }
+    setAiCreatedNames(prev => Array.from(new Set([
+      ...prev,
+      ...visibleAiSuggestions.map(item => item.name)
+    ])));
   };
 
   const tabs = [
@@ -170,7 +269,7 @@ export default function Settings() {
                     </div>
                   </div>
                   <h3 className="text-xl font-black text-zinc-900 mb-1">{t('settings.language')}</h3>
-                  <p className="text-zinc-500 font-medium mb-4">Select interface language</p>
+                  <p className="text-zinc-500 font-medium mb-4">{t('settings.language_desc')}</p>
 
                   <div className="grid grid-cols-3 gap-2">
                     {['en', 'ru', 'uz'].map(lang => (
@@ -263,7 +362,7 @@ export default function Settings() {
                           className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-gray-200/50"
                           style={{ backgroundColor: acc.color, color: '#fff' }}
                         >
-                          {acc.icon || '💳'}
+                          {acc.icon || '\u{1F4B3}'}
                         </div>
                         <div>
                           <div className="font-black text-lg text-zinc-900 mb-1">{acc.name}</div>
@@ -304,126 +403,300 @@ export default function Settings() {
 
           {/* === 3. CATEGORIES TAB === */}
           {activeTab === 'categories' && (
-            <div className="space-y-8">
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <GlassCard gradient={true} className="border-none text-white relative overflow-visible">
-                  {/* Decorative blur */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="relative space-y-8">
+              <div className="pointer-events-none absolute -top-24 right-[-60px] w-80 h-80 rounded-full bg-emerald-200/40 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 left-[-40px] w-72 h-72 rounded-full bg-amber-200/40 blur-3xl" />
 
-                  <div className="relative z-10 flex flex-col lg:flex-row items-center gap-6">
-                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-4 gap-4">
-
-                      {/* ICON INPUT */}
+              <div className="relative grid lg:grid-cols-[1.35fr,0.65fr] gap-6">
+                <GlassCard className="border-none bg-white/85 shadow-2xl shadow-emerald-100/40 overflow-visible p-7 sm:p-8">
+                  <div className="absolute inset-y-6 left-6 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 via-teal-400 to-amber-300" />
+                  <div className="relative space-y-6 pl-4 sm:pl-6">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
-                        <label className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-2 block">Icon</label>
-                        <div className="relative group">
-                          <input
-                            className="w-full h-14 text-center text-3xl rounded-2xl bg-white/10 border border-white/20 font-black outline-none text-white focus:bg-white/20 focus:border-white/40 transition-all cursor-pointer shadow-inner placeholder-white/30"
-                            value={newCatIcon}
-                            onChange={e => setNewCatIcon(e.target.value)}
-                            placeholder="✨"
-                            maxLength={2}
-                          />
-                          <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none opacity-50">
-                            <span className="text-[10px] font-bold uppercase rotate-90 tracking-widest text-indigo-200">Emoji</span>
-                          </div>
-
-                          {/* Emoji Grid Popup */}
-                          <div className="absolute top-full left-0 mt-3 w-72 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                            <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
-                              {['🍔', '🍕', '🍺', '☕', '🛒', '🛍️', '🎁', '💊', '🩸', '🎓', '📚', '💼', '💸', '💰', '💳', '🏠', '💡', '🚿', '🚕', '✈️', '🎮', '🎬', '🎵', '💪', '⚽', '💇', '💅', '👶', '🐾', '🐶', '🐱', '🛠️', '🔧', '🧹', '📅', '🔔', '⚠️', '🔥', '❤️', '✨', '🥦', '🍎', '🚍', '🚲', '🏥', '👗', '👟', '🎩', '👓', '💍', '📷', '📹', '📞', '🔋', '🔌'].map(emoji => (
-                                <button
-                                  key={emoji}
-                                  onClick={() => setNewCatIcon(emoji)}
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 text-xl transition-colors active:scale-90"
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                            </div>
-                            <div className="text-[10px] text-center text-slate-400 mt-2 font-medium">Select emoji</div>
-                          </div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-600">{t('settings.categories')}</span>
+                        <h3 className="text-3xl sm:text-4xl font-black text-zinc-900 mt-2">{t('settings.categories')}</h3>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                          <Tag size={20} />
                         </div>
-                      </div>
-
-                      {/* NAME INPUT */}
-                      <div className="md:col-span-2">
-                        <label className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-2 block">Name</label>
-                        <input className="w-full h-14 px-4 rounded-2xl bg-white/10 border border-white/20 font-bold outline-none text-white placeholder-white/40 focus:bg-white/20 focus:border-white/40 transition-all shadow-inner" placeholder="..." value={newCatName} onChange={e => setNewCatName(e.target.value)} />
-                      </div>
-
-                      {/* TYPE SELECT */}
-                      <div>
-                        <label className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-2 block">Type</label>
-                        <div className="relative">
-                          <select className="w-full h-14 px-4 rounded-2xl bg-white/10 border border-white/20 font-bold outline-none text-white focus:bg-white/20 focus:border-white/40 transition-all appearance-none cursor-pointer shadow-inner" value={newCatType} onChange={e => setNewCatType(e.target.value)}>
-                            <option className="bg-slate-900 text-white" value="expense">Expense</option>
-                            <option className="bg-slate-900 text-white" value="income">Income</option>
-                          </select>
-                          <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-white/50 pointer-events-none" size={16} />
+                        <div className="text-right">
+                          <div className="text-xs font-bold uppercase text-zinc-400">{t('settings.categories')}</div>
+                          <div className="text-3xl font-black text-zinc-900 leading-none">{store.categories.length}</div>
                         </div>
                       </div>
                     </div>
-                    <button onClick={handleCreateCategory} className="w-full lg:w-auto h-14 px-8 rounded-2xl bg-white text-indigo-600 font-black shadow-lg shadow-indigo-900/40 hover:scale-105 active:scale-95 hover:bg-indigo-50 transition-all whitespace-nowrap flex items-center justify-center gap-2">
-                      <Plus size={20} className="stroke-[3px]" />
-                      <span>{t('common.add')}</span>
+
+                    <div className="h-px bg-gradient-to-r from-emerald-200 via-zinc-100 to-transparent" />
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block">{t('settings.category_form.name')}</label>
+                        <input
+                          className="w-full h-12 px-4 rounded-2xl bg-white border border-zinc-100 font-bold outline-none text-zinc-900 placeholder-zinc-300 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100 transition-all"
+                          placeholder="..."
+                          value={newCatName}
+                          onChange={e => setNewCatName(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">{t('settings.category_form.type')}</label>
+                        <div className="flex items-center gap-2 p-1 rounded-2xl bg-zinc-50 border border-zinc-100">
+                          <button
+                            type="button"
+                            onClick={() => setNewCatType('expense')}
+                            className={`flex-1 h-10 rounded-xl text-sm font-bold transition-all ${newCatType === 'expense'
+                              ? 'bg-white text-zinc-900 shadow-sm'
+                              : 'text-zinc-500 hover:text-zinc-800'}`}
+                          >
+                            {t('modals.transaction.type_expense')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewCatType('income')}
+                            className={`flex-1 h-10 rounded-xl text-sm font-bold transition-all ${newCatType === 'income'
+                              ? 'bg-white text-zinc-900 shadow-sm'
+                              : 'text-zinc-500 hover:text-zinc-800'}`}
+                          >
+                            {t('modals.transaction.type_income')}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">{t('settings.category_form.emoji')}</label>
+                        <div className="relative">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsEmojiOpen(prev => !prev)}
+                              className="w-14 h-12 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center text-2xl font-emoji shadow-sm hover:border-emerald-200"
+                            >
+                              {newCatIcon || '\u2728'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsEmojiOpen(prev => !prev)}
+                              className="flex-1 h-12 px-3 rounded-2xl border border-dashed border-zinc-200 text-sm font-bold text-zinc-500 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
+                            >
+                              {t('settings.category_form.select_emoji')}
+                            </button>
+                          </div>
+                          {isEmojiOpen && (
+                            <div className="absolute top-full left-0 mt-3 w-72 bg-white border border-zinc-100 rounded-2xl p-4 shadow-xl z-50">
+                              <div className="grid grid-cols-6 gap-2 max-h-44 overflow-y-auto custom-scrollbar">
+                                {EMOJI_OPTIONS.map(emoji => (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => {
+                                      setNewCatIcon(emoji);
+                                      setIsEmojiOpen(false);
+                                    }}
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 text-xl transition-colors active:scale-95 font-emoji"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-3 py-2">
+                        <div className="w-12 h-12 rounded-2xl bg-white text-2xl flex items-center justify-center font-emoji shadow-sm">
+                          {newCatIcon || '\u2728'}
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-zinc-900">{newCatName.trim() || t('settings.category_form.name')}</div>
+                          <div className="text-xs text-zinc-400">
+                            {newCatType === 'income' ? t('modals.transaction.type_income') : t('modals.transaction.type_expense')}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleCreateCategory}
+                        className="h-12 px-6 rounded-2xl bg-emerald-600 text-white font-black shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Plus size={18} className="stroke-[3px]" />
+                        <span>{t('common.add')}</span>
+                      </button>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="border-none bg-white/80 shadow-2xl shadow-indigo-100/40 p-7 sm:p-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500">{t('settings.categories')}</div>
+                      <div className="text-3xl font-black text-zinc-900 mt-2">{store.categories.length}</div>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <Shield size={20} />
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <button
+                      onClick={handleRestoreCategories}
+                      className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-indigo-100 bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-colors"
+                    >
+                      <span className="flex items-center gap-2"><RefreshCw size={16} /> {t('settings.restore_categories')}</span>
+                      <ChevronRight size={16} />
+                    </button>
+                    <button
+                      onClick={() => confirm(t('common.confirm')) && store.deleteAllCategories()}
+                      className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-rose-100 bg-rose-50 text-rose-600 font-bold hover:bg-rose-100 transition-colors"
+                    >
+                      <span className="flex items-center gap-2"><Trash2 size={16} /> {t('settings.clear_categories')}</span>
+                      <ChevronRight size={16} />
                     </button>
                   </div>
                 </GlassCard>
-              </motion.div>
-
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
-                <h3 className="font-black text-xl text-zinc-900 flex items-center gap-2">{t('settings.categories')} <span className="bg-zinc-100 text-zinc-500 text-xs px-2 py-1 rounded-md">{store.categories.length}</span></h3>
-                <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-                  <button onClick={handleRestoreCategories} className="flex-1 md:flex-none flex items-center justify-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-3 rounded-xl transition-colors whitespace-nowrap"><RefreshCw size={14} /> {t('settings.restore_categories')}</button>
-                  <button onClick={() => confirm(t('common.confirm')) && store.deleteAllCategories()} className="flex-1 md:flex-none flex items-center justify-center gap-2 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 px-4 py-3 rounded-xl transition-colors whitespace-nowrap"><Trash2 size={14} /> {t('settings.clear_categories')}</button>
-                </div>
               </div>
 
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* INCOME COLUMN */}
-                <div className="space-y-3">
-                  <div className="sticky top-0 bg-[#f8fafc]/95 backdrop-blur-sm z-10 py-2 mb-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <h4 className="font-bold text-zinc-500 uppercase tracking-wider text-xs">Доходы</h4>
-                  </div>
-                  {store.categories.filter(c => c.type === 'income').map(c => (
-                    <div key={c.id} className="group bg-white p-3 rounded-2xl border border-zinc-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-xl">{c.icon}</div>
-                        <span className="font-bold text-zinc-700">{c.name}</span>
-                      </div>
-                      <button onClick={() => store.deleteCategory(c.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-300 hover:text-white hover:bg-rose-500 transition-colors">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+              <GlassCard className="border-none bg-white/85 shadow-2xl shadow-indigo-100/40 p-6 sm:p-7 overflow-hidden">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-400 via-emerald-400 to-amber-300" />
+                <div className="absolute -top-10 right-10 w-32 h-32 rounded-full bg-indigo-200/30 blur-2xl pointer-events-none" />
+                <div className="absolute -bottom-12 left-6 w-40 h-40 rounded-full bg-emerald-200/30 blur-2xl pointer-events-none" />
 
-                {/* EXPENSE COLUMN */}
-                <div className="space-y-3">
-                  <div className="sticky top-0 bg-[#f8fafc]/95 backdrop-blur-sm z-10 py-2 mb-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-rose-500" />
-                    <h4 className="font-bold text-zinc-500 uppercase tracking-wider text-xs">Расходы</h4>
+                <div className="relative">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <Sparkles size={18} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">{t('ai.categories_suggest.title')}</div>
+                        <div className="text-sm font-semibold text-zinc-600">{t('ai.categories_suggest.subtitle')}</div>
+                      </div>
+                    </div>
+                    {visibleAiSuggestions.length > 1 && (
+                      <button
+                        onClick={handleCreateAllAiSuggestions}
+                        className="h-10 px-4 rounded-2xl bg-indigo-600 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 active:scale-95 transition-all"
+                      >
+                        {t('ai.categories_suggest.create_all')}
+                      </button>
+                    )}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {store.categories.filter(c => c.type === 'expense').map(c => (
-                      <div key={c.id} className="group bg-white p-3 rounded-2xl border border-zinc-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex items-center justify-between">
+
+                  <div className="mt-4 grid sm:grid-cols-3 gap-3">
+                    {isAiCategoriesLoading && [0, 1, 2].map((item) => (
+                      <div key={item} className="rounded-2xl border border-zinc-100 bg-white/90 p-4 shadow-sm animate-pulse">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 shrink-0 rounded-xl bg-rose-50 flex items-center justify-center text-xl">{c.icon}</div>
-                          <span className="font-bold text-zinc-700 text-sm truncate">{c.name}</span>
+                          <div className="w-10 h-10 rounded-xl bg-zinc-200" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-3 bg-zinc-200 rounded w-3/5" />
+                            <div className="h-3 bg-zinc-100 rounded w-2/5" />
+                          </div>
                         </div>
-                        <button onClick={() => store.deleteCategory(c.id)} className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-zinc-300 hover:text-white hover:bg-rose-500 transition-colors opacity-0 group-hover:opacity-100">
+                      </div>
+                    ))}
+
+                    {!isAiCategoriesLoading && visibleAiSuggestions.length === 0 && (
+                      <div className="sm:col-span-3 text-sm text-zinc-500 bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl px-4 py-5">
+                        {t('ai.categories_suggest.empty')}
+                      </div>
+                    )}
+
+                    {!isAiCategoriesLoading && visibleAiSuggestions.map((item) => (
+                      <div key={item.name} className="group rounded-2xl border border-zinc-100 bg-white/90 p-4 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-emoji"
+                              style={{ backgroundColor: item.color ? `${item.color}22` : '#f8fafc' }}
+                            >
+                              {item.icon || '\u2728'}
+                            </div>
+                            <div>
+                              <div className="font-bold text-zinc-800">{item.name}</div>
+                              <div className="text-[11px] font-semibold text-zinc-400">
+                                {item.type === 'income' ? t('modals.transaction.type_income') : t('modals.transaction.type_expense')}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleCreateAiSuggestion(item)}
+                            className="h-9 px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 active:scale-95 transition-all"
+                          >
+                            {t('ai.categories_suggest.create')}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </GlassCard>
+
+              <div className="grid lg:grid-cols-2 gap-6">
+                <GlassCard className="border-none bg-white/85 shadow-2xl shadow-emerald-100/40 p-7 sm:p-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">{t('analytics.income')}</div>
+                        <div className="text-lg font-black text-zinc-900">{store.categories.filter(c => c.type === 'income').length}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-3">
+                    {store.categories.filter(c => c.type === 'income').map(c => (
+                      <div key={c.id} className="group flex items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white/90 px-3 py-2.5 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-xl font-emoji">{c.icon}</div>
+                          <span className="font-bold text-zinc-800">{c.name}</span>
+                        </div>
+                        <button
+                          onClick={() => store.deleteCategory(c.id)}
+                          className="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-rose-500 transition-colors"
+                        >
                           <Trash2 size={16} />
                         </button>
                       </div>
                     ))}
                   </div>
-                </div>
+                </GlassCard>
+
+                <GlassCard className="border-none bg-white/85 shadow-2xl shadow-rose-100/40 p-7 sm:p-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">{t('analytics.expenses')}</div>
+                        <div className="text-lg font-black text-zinc-900">{store.categories.filter(c => c.type === 'expense').length}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-5 grid sm:grid-cols-2 gap-3">
+                    {store.categories.filter(c => c.type === 'expense').map(c => (
+                      <div key={c.id} className="group flex items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white/90 px-3 py-2.5 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 shrink-0 rounded-xl bg-rose-50 flex items-center justify-center text-xl font-emoji">{c.icon}</div>
+                          <span className="font-bold text-zinc-800 text-sm truncate">{c.name}</span>
+                        </div>
+                        <button
+                          onClick={() => store.deleteCategory(c.id)}
+                          className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </GlassCard>
               </div>
             </div>
           )}
-
           {/* === 4. DATA TAB === */}
           {activeTab === 'data' && (
             <div className="grid md:grid-cols-2 gap-8">
@@ -491,9 +764,9 @@ export default function Settings() {
 
           <div className="space-y-3">
             {[
-              { code: 'USD', name: 'Доллар США ($)' },
-              { code: 'EUR', name: 'Евро (€)' },
-              { code: 'RUB', name: 'Рубль (₽)' }
+              { code: 'USD', name: '\u0414\u043e\u043b\u043b\u0430\u0440 \u0421\u0428\u0410 ($)' },
+              { code: 'EUR', name: '\u0415\u0432\u0440\u043e (\u20ac)' },
+              { code: 'RUB', name: '\u0420\u0443\u0431\u043b\u044c (\u20bd)' }
             ].map((currency) => (
               <div key={currency.code} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-zinc-200 shadow-sm">
                 <div className="w-12 font-bold text-zinc-400">{currency.code}</div>
@@ -515,3 +788,4 @@ export default function Settings() {
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const AiService = require('../services/aiService');
 
 // Дашборд: Аккаунты (с балансами) + Последние транзакции
 exports.getDashboard = async (req, res) => {
@@ -258,6 +259,23 @@ exports.getInsights = async (req, res) => {
     } catch (error) {
         console.error('Insights Error:', error);
         res.status(500).json({ error: 'Failed to fetch insights' });
+    }
+};
+
+exports.getAiInsight = async (req, res) => {
+    try {
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(503).json({ error: 'AI service unavailable' });
+        }
+        const headerLang = req.headers['x-app-lang'] || req.headers['accept-language'];
+        const requestedLang = req.query.lang || headerLang || '';
+        const normalizedLang = String(requestedLang).split(',')[0].trim().toLowerCase();
+        const lang = normalizedLang.startsWith('uz') ? 'uz' : normalizedLang.startsWith('en') ? 'en' : 'ru';
+        const insight = await AiService.getDailyInsight(req.user.id, lang);
+        res.json(insight);
+    } catch (error) {
+        console.error('AI Insight Error:', error);
+        res.status(500).json({ error: 'Failed to fetch AI insight' });
     }
 };
 

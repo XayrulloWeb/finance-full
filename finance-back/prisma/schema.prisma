@@ -17,15 +17,20 @@ datasource db {
 
 model User {
   id            String    @id @default(uuid()) @db.Uuid
-  email         String    @unique
-  password_hash String    // Хэш пароля (bcrypt)
-  role          String    @default("user") // "admin" | "user"
-  status        String    @default("active") // "active" | "banned" | "pending"
+  email         String?   @unique
+  // --- НОВЫЕ ПОЛЯ ---
+  phone         String?   @unique
+  is_verified   Boolean   @default(false)
+  verification_code String?
+  code_expires_at   DateTime?
+  // ------------------
+  password_hash String
+  role          String    @default("user")
+  status        String    @default("active")
   last_login_at DateTime? @db.Timestamptz
   created_at    DateTime  @default(now()) @db.Timestamptz
   updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
 
-  // Связи (Relations)
   settings      UserSettings?
   accounts      Account[]
   categories    Category[]
@@ -39,8 +44,7 @@ model User {
   admin_audit_logs AdminAuditLog[]
 
   @@index([status])
-
-  @@map("users") // Имя таблицы в БД
+  @@map("users")
 }
 
 model UserSettings {

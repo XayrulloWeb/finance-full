@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { ArrowRightLeft, Plus, TrendingUp, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -32,9 +32,17 @@ export default function Dashboard() {
     const isPrivacy = useFinanceStore(s => s.settings.is_privacy_enabled);
     const currency = useFinanceStore(s => s.settings.base_currency);
     const openModal = useFinanceStore(s => s.openModal);
+    const fetchAiForecast = useFinanceStore(s => s.fetchAiForecast);
+    const aiForecast = useFinanceStore(s => s.aiForecast);
+    const isAiForecastLoading = useFinanceStore(s => s.isAiForecastLoading);
 
     const getTopExpenseCategories = useFinanceStore(s => s.getTopExpenseCategories);
     const getAccountBalance = useFinanceStore(s => s.getAccountBalance);
+
+    useEffect(() => {
+        fetchAiForecast();
+    }, [fetchAiForecast]);
+
 
     // --- 🔥 ЗАЩИТА: ПОКАЗЫВАЕМ СКЕЛЕТОНЫ ПРИ ЗАГРУЗКЕ ---
     if (loading && accounts.length === 0) {
@@ -67,6 +75,25 @@ export default function Dashboard() {
             <SmartAlerts />
             <BalanceCard />
             <MonthlyStats />
+
+            {/* AI Forecast */}
+            {isAiForecastLoading && !aiForecast ? (
+                <SkeletonLoader type="card" count={1} />
+            ) : aiForecast ? (
+                <GlassCard className="relative overflow-hidden">
+                    <div className="flex items-center justify-between">
+                        <div className="text-xs font-bold uppercase text-zinc-500 tracking-wider">{t('ai.forecast.title')}</div>
+                        <TrendingUp className="text-emerald-500" size={18} strokeWidth={2.5} />
+                    </div>
+                    <div className="mt-3 text-2xl font-black text-zinc-900">
+                        {isPrivacy ? '?????' : new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0))} {currency}
+                    </div>
+                    <p className="text-sm text-zinc-500 font-medium mt-2">
+                        {aiForecast.message || t('ai.forecast.message', { value: new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0)) })}
+                    </p>
+                </GlassCard>
+            ) : null}
+
 
             {/* Top Expense Categories */}
             <section>

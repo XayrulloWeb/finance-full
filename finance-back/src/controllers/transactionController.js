@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
 const BalanceService = require('../services/balanceService');
+const cacheService = require('../services/cacheService');
 const { ensureAccountOwnership, ensureOptionalCategoryOwnership, ensureOptionalCounterpartyOwnership } = require('../lib/ownership');
 
 // Получение списка транзакций (с фильтрами и пагинацией)
@@ -50,14 +51,25 @@ exports.getTransactions = async (req, res) => {
             }
         }
 
-        const data = await prisma.transaction.findMany({
-            where,
-            orderBy: { date: 'desc' },
-            skip: Number(page) * Number(limit),
-            take: Number(limit)
-        });
+        const [data, total] = await Promise.all([
+            prisma.transaction.findMany({
+                where,
+                orderBy: { date: 'desc' },
+                skip: Number(page) * Number(limit),
+                take: Number(limit)
+            }),
+            prisma.transaction.count({ where })
+        ]);
 
-        res.json(data);
+        res.json({
+            data,
+            meta: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                totalPages: Math.ceil(total / Number(limit))
+            }
+        });
     } catch (error) {
         console.error('Get Txs Error:', error);
         res.status(500).json({ error: 'Failed to fetch transactions' });

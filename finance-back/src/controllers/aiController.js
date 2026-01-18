@@ -1,7 +1,7 @@
 const prisma = require('../lib/prisma');
 const AiHelper = require('../services/aiHelper');
-const FORECAST_CACHE_TTL_MS = 10 * 60 * 1000;
-const forecastCache = new Map();
+const cacheService = require('../services/cacheService');
+const DAILY_CACHE_TTL = 24 * 60 * 60; // 24 Hours
 
 const getLang = (req) => {
     const headerLang = req.headers['x-app-lang'] || req.headers['accept-language'];
@@ -143,6 +143,13 @@ exports.getSmartAlerts = async (req, res) => {
     try {
         const userId = req.user.id;
         const lang = getLang(req);
+
+        // 1. Check Cache (One request per day)
+        const dateKey = new Date().toISOString().split('T')[0];
+        const cacheKey = `ai:alerts:${userId}:${lang}:${dateKey}`;
+        const cached = await cacheService.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const now = new Date();
         const start7 = new Date(now);
         start7.setDate(now.getDate() - 6);
@@ -257,7 +264,9 @@ exports.getSmartAlerts = async (req, res) => {
             return match ? { ...alert, title: match.title, message: match.message } : alert;
         });
 
-        res.json({ alerts: merged });
+        const response = { alerts: merged };
+        await cacheService.set(cacheKey, response, DAILY_CACHE_TTL);
+        res.json(response);
     } catch (error) {
         console.error('AI Alerts Error:', error);
         res.status(500).json({ error: 'Failed to fetch alerts' });
@@ -268,11 +277,12 @@ exports.getForecast = async (req, res) => {
     try {
         const userId = req.user.id;
         const lang = getLang(req);
-        const cacheKey = `${userId}:${lang}`;
-        const cached = forecastCache.get(cacheKey);
-        if (cached && Date.now() - cached.at < FORECAST_CACHE_TTL_MS) {
-            return res.json(cached.data);
-        }
+
+        const dateKey = new Date().toISOString().split('T')[0];
+        const cacheKey = `ai:forecast:${userId}:${lang}:${dateKey}`;
+        const cached = await cacheService.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const { now, start, end } = getMonthRange();
         const daysPassed = now.getDate();
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -332,7 +342,7 @@ exports.getForecast = async (req, res) => {
         }
 
         const payload = { ...response, message: aiMessage };
-        forecastCache.set(cacheKey, { at: Date.now(), data: payload });
+        await cacheService.set(cacheKey, payload, DAILY_CACHE_TTL);
         res.json(payload);
     } catch (error) {
         console.error('AI Forecast Error:', error);
@@ -344,6 +354,12 @@ exports.getAnalyticsExplanation = async (req, res) => {
     try {
         const userId = req.user.id;
         const lang = getLang(req);
+
+        const dateKey = new Date().toISOString().split('T')[0];
+        const cacheKey = `ai:analytics:${userId}:${lang}:${dateKey}`;
+        const cached = await cacheService.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const { start, end } = getMonthRange();
 
         const [incomeAgg, expenseAgg, expenseGroups] = await Promise.all([
@@ -400,7 +416,9 @@ exports.getAnalyticsExplanation = async (req, res) => {
             console.error('AI Analytics Explanation Error:', aiError);
         }
 
-        res.json({ ...summary, message: aiMessage });
+        const response = { ...summary, message: aiMessage };
+        await cacheService.set(cacheKey, response, DAILY_CACHE_TTL);
+        res.json(response);
     } catch (error) {
         console.error('AI Analytics Explanation Error:', error);
         res.status(500).json({ error: 'Failed to explain analytics' });
@@ -411,6 +429,12 @@ exports.getGoalsAdvice = async (req, res) => {
     try {
         const userId = req.user.id;
         const lang = getLang(req);
+
+        const dateKey = new Date().toISOString().split('T')[0];
+        const cacheKey = `ai:goals:${userId}:${lang}:${dateKey}`;
+        const cached = await cacheService.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const goals = await prisma.goal.findMany({
             where: { user_id: userId, is_removed: false },
             select: { id: true, name: true, target_amount: true, current_amount: true, deadline: true, is_completed: true }
@@ -454,7 +478,9 @@ exports.getGoalsAdvice = async (req, res) => {
             console.error('AI Goals Advice Error:', aiError);
         }
 
-        res.json({ ...payload, ...(aiResult || {}) });
+        const response = { ...payload, ...(aiResult || {}) };
+        await cacheService.set(cacheKey, response, DAILY_CACHE_TTL);
+        res.json(response);
     } catch (error) {
         console.error('AI Goals Advice Error:', error);
         res.status(500).json({ error: 'Failed to fetch goals advice' });
@@ -465,6 +491,12 @@ exports.getDebtsAdvice = async (req, res) => {
     try {
         const userId = req.user.id;
         const lang = getLang(req);
+
+        const dateKey = new Date().toISOString().split('T')[0];
+        const cacheKey = `ai:debts:${userId}:${lang}:${dateKey}`;
+        const cached = await cacheService.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const debts = await prisma.debt.findMany({
             where: { user_id: userId, is_removed: false, is_closed: false },
             select: { id: true, name: true, amount: true, paid_amount: true, type: true, due_date: true }
@@ -496,7 +528,9 @@ exports.getDebtsAdvice = async (req, res) => {
             console.error('AI Debts Advice Error:', aiError);
         }
 
-        res.json({ debts: payload, ...(aiResult || {}) });
+        const response = { debts: payload, ...(aiResult || {}) };
+        await cacheService.set(cacheKey, response, DAILY_CACHE_TTL);
+        res.json(response);
     } catch (error) {
         console.error('AI Debts Advice Error:', error);
         res.status(500).json({ error: 'Failed to fetch debts advice' });

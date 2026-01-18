@@ -1,16 +1,25 @@
 import React from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Bell, Check, Trash2, Info, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Bell, Check, Trash2, Info, AlertTriangle, CheckCircle, Loader } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ru, enUS, uz } from 'date-fns/locale';
 import Button from '../components/ui/Button';
 import { useTranslation } from 'react-i18next';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function Notifications() {
     const { t, i18n } = useTranslation();
-    const { notifications, markNotificationRead, clearAllNotifications } = useFinanceStore();
+    const {
+        notifications,
+        markNotificationRead,
+        clearAllNotifications,
+        fetchNotifications,
+        isLoadingNotifications,
+        hasMoreNotifications,
+        notificationPage
+    } = useFinanceStore();
 
     const locales = { ru, en: enUS, uz };
     const currentLocale = locales[i18n.language] || ru;
@@ -51,6 +60,13 @@ export default function Notifications() {
         return keys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
     };
 
+    // Infinite Scroll
+    const loadMore = () => {
+        fetchNotifications({ page: notificationPage + 1, limit: 20, append: true });
+    };
+
+    const lastElementRef = useInfiniteScroll(loadMore, hasMoreNotifications, isLoadingNotifications);
+
     return (
         <div className="space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-32">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -68,10 +84,18 @@ export default function Notifications() {
                 )}
             </div>
 
-            {Object.keys(grouped).length === 0 && (
-                <div className="text-center py-20 text-zinc-400 border-2 border-dashed border-zinc-200 rounded-3xl bg-white/50">
-                    <Bell size={48} className="mx-auto mb-4 opacity-20" />
-                    <p>{t('notifications.empty')}</p>
+            {Object.keys(grouped).length === 0 && !isLoadingNotifications && (
+                <div className="text-center py-20 flex flex-col items-center justify-center animate-fade-in group">
+                    <div className="relative mb-6">
+                        <div className="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                        <div className="relative w-24 h-24 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+                            <Bell size={40} className="text-indigo-300 dark:text-indigo-400/50" strokeWidth={1.5} />
+                        </div>
+                    </div>
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">{t('notifications.empty')}</h3>
+                    <p className="text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto text-sm leading-relaxed">
+                        {t('notifications.subtitle')}
+                    </p>
                 </div>
             )}
 
@@ -117,6 +141,11 @@ export default function Notifications() {
                     </div>
                 </div>
             ))}
+
+            {/* Infinite Scroll Loader */}
+            <div ref={lastElementRef} className="py-6 flex justify-center w-full min-h-[50px]">
+                {isLoadingNotifications && <Loader className="animate-spin text-indigo-500" size={24} />}
+            </div>
         </div>
     );
 }

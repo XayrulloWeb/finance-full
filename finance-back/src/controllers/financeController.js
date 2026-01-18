@@ -2,7 +2,7 @@
 const prisma = require('../lib/prisma');
 const BalanceService = require('../services/balanceService');
 const { ensureAccountOwnership, ensureCategoryOwnership, ensureOptionalCounterpartyOwnership } = require('../lib/ownership');
-const AiService = require('../services/aiService'); 
+const AiService = require('../services/aiService');
 // --- GOALS ---
 exports.createGoal = async (req, res) => {
     try {
@@ -240,6 +240,17 @@ exports.payDebt = async (req, res) => {
 
             return updatedDebt;
         });
+
+        // SYNC: Если долг связанный, синхронизируем платеж
+        if (result.is_linked) {
+            try {
+                const debtSyncService = require('../services/debtSyncService');
+                await debtSyncService.syncDebtPayment(debtId, valAmount, userId);
+            } catch (syncError) {
+                console.error('Sync error (non-critical):', syncError);
+            }
+        }
+
         res.json(result);
     } catch (error) {
         console.error('Pay Debt Error:', error);
@@ -263,8 +274,6 @@ exports.payDebt = async (req, res) => {
 exports.upsertBudget = async (req, res) => {
     const { category_id, amount } = req.body;
     try {
-        const valAmount = Number(amount) || 0;
-        await ensureCategoryOwnership(req.user.id, category_id, prisma);
 
         // Сначала ищем существующий
         const existing = await prisma.budget.findFirst({

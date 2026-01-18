@@ -66,7 +66,7 @@ const generateTextWithBytez = async (prompt) => {
     const modelId = getBytezModel().toLowerCase();
     const maxTokens = getBytezMaxTokens();
     const params = modelId.includes('openai') || modelId.includes('gpt')
-        ? { max_tokens: maxTokens }
+        ? { max_completion_tokens: maxTokens }
         : { max_new_tokens: maxTokens };
     const { error, output } = await model.run([
         { role: 'user', content: prompt }

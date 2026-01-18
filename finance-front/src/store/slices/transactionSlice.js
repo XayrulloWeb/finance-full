@@ -44,16 +44,21 @@ export const createTransactionSlice = (set, get) => ({
     },
 
     // Загрузка истории транзакций (с пагинацией и фильтрами)
-    fetchTransactions: async ({ page = 0, limit = 50, filters = {}, append = false } = {}) => {
+    fetchTransactions: async ({ page = 0, limit = 20, filters = {}, append = false } = {}) => {
         set({ isLoadingTransactions: true });
         try {
             const { data } = await api.get('/transactions', { params: { page, limit, ...filters } });
 
+            // Backend now returns { data: [], meta: { ... } }
+            const txs = data.data || [];
+            const meta = data.meta || {};
+
             set(state => ({
-                transactions: append ? [...state.transactions, ...data] : data,
-                hasMore: data.length === limit,
+                transactions: append ? [...state.transactions, ...txs] : txs,
+                hasMore: meta.page < meta.totalPages - 1, // 0-indexed page in backend? Let's assume 0-indexed as per controller default
                 currentPage: page,
-                isLoadingTransactions: false
+                isLoadingTransactions: false,
+                totalTransactions: meta.total
             }));
         } catch (e) {
             console.error(e);

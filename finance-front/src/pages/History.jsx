@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { Filter, X, Search, ArrowUpDown, Calendar, CreditCard, Tag, Loader, ChevronDown } from 'lucide-react';
 import TransactionItem from '../components/TransactionItem';
 import GlassCard from '../components/ui/GlassCard';
@@ -61,6 +62,12 @@ export default function History() {
             append: isAppend,
         });
     }, [filters, debouncedSearch, fetchFromStore, currentPage]);
+
+    const lastElementRef = useInfiniteScroll(
+        () => fetchTransactions(true),
+        hasMore,
+        isLoadingTransactions
+    );
 
     // --- 3. ИСПРАВЛЕНИЕ: Добавляем fetchTransactions в зависимости useEffect ---
     // Теперь это безопасно, так как функция fetchTransactions стала стабильной.
@@ -218,9 +225,10 @@ export default function History() {
                 )}
             </div>
 
-            {!isLoadingTransactions && hasMore && transactions.length > 0 && (
-                <div className="flex justify-center pt-4"><Button onClick={handleLoadMore} icon={ChevronDown}>{t('history.load_more')}</Button></div>
-            )}
+            {/* Infinite Scroll Loader & Sentinel */}
+            <div ref={lastElementRef} className="py-4 flex justify-center w-full">
+                {isLoadingTransactions && <Loader className="animate-spin text-indigo-500" size={24} />}
+            </div>
 
             <TransactionModal isOpen={!!editingTransaction} onClose={() => setEditingTransaction(null)} editingTransaction={editingTransaction} />
         </div>

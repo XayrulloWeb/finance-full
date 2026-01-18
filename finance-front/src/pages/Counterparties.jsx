@@ -103,30 +103,42 @@ export default function Counterparties() {
                 </div>
             )}
 
-            {/* Пустое состояние */}
+            {/* Пустое состояние (NEW DESIGN) */}
             {filteredCounterparties.length === 0 && (
-                <div className="col-span-full py-12 text-center text-zinc-400 border-2 border-dashed border-zinc-200 rounded-2xl bg-white/50
-            flex flex-col items-center justify-center gap-4">
+                <div className="col-span-full py-20 text-center flex flex-col items-center justify-center animate-fade-in">
                     {searchQuery ? (
-                        <div>
-                            <Search size={48} className="mx-auto mb-4 text-zinc-400 border-2 border-zinc-200 rounded-full p-2" strokeWidth={1} />
-                            <p className="text-xl text-zinc-400 mb-2 font-bold">{t('counterparties.empty_search')}</p>
-                            <p className="text-sm text-zinc-500">{t('counterparties.empty_search_desc')}</p>
+                        <div className="max-w-md mx-auto space-y-4">
+                            <div className="w-20 h-20 mx-auto bg-zinc-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-2">
+                                <Search size={32} className="text-zinc-400" strokeWidth={2} />
+                            </div>
+                            <h3 className="text-2xl font-black text-zinc-900 dark:text-white">{t('counterparties.empty_search')}</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400 font-medium">{t('counterparties.empty_search_desc')}</p>
                         </div>
                     ) : (
-                        <div>
-                            <div className="text-6xl mb-4 grayscale opacity-50">📇</div>
-                            <p className="text-xl font-bold text-zinc-400 mb-2">{t('counterparties.empty_list')}</p>
-                            <p className="text-sm text-zinc-500 mb-6">
-                                {t('counterparties.empty_list_desc')}
-                            </p>
-                            <Button
-                                onClick={handleAdd}
-                                icon={Plus}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                            >
-                                {t('counterparties.add_first')}
-                            </Button>
+                        <div className="max-w-md mx-auto relative group cursor-pointer" onClick={handleAdd}>
+                            {/* Decorative Background */}
+                            <div className="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                            <div className="relative z-10 space-y-6">
+                                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-[2rem] flex items-center justify-center shadow-inner border border-white/20 dark:border-white/5 group-hover:scale-110 transition-transform duration-500">
+                                    <span className="text-5xl filter drop-shadow-sm">📇</span>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-black text-zinc-900 dark:text-white">{t('counterparties.empty_list')}</h3>
+                                    <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg leading-relaxed">
+                                        {t('counterparties.empty_list_desc')}
+                                    </p>
+                                </div>
+
+                                <Button
+                                    onClick={(e) => { e.stopPropagation(); handleAdd(); }}
+                                    icon={Plus}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 px-8 py-4 h-auto text-lg rounded-2xl mx-auto"
+                                >
+                                    {t('counterparties.add_first')}
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>

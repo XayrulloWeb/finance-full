@@ -33,14 +33,16 @@ export default function App() {
     const isAuthChecked = useFinanceStore(s => s.isAuthChecked);
     const settings = useFinanceStore(s => s.settings);
 
+    // Theme Effect
     useEffect(() => {
-        // Theme
         if (settings.dark_mode) document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
+    }, [settings.dark_mode]);
 
-        // Auth Check (Проверяем токен при запуске)
+    // Auth Check Effect (Run once on mount)
+    useEffect(() => {
         checkUser();
-    }, [checkUser, settings.dark_mode]);
+    }, [checkUser]);
 
     if (!isAuthChecked) return <FullScreenLoader />;
 

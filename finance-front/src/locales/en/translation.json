@@ -56,6 +56,8 @@
         "security_desc": "Access Management",
         "email_verified": "Email Verified",
         "app_version": "App Version",
+        "appearance": "Appearance",
+        "dark_mode_desc": "Switch between Light and Dark themes",
         "currencies": "Currencies",
         "currencies_desc": "Automatic Conversion",
         "export": "Export",
@@ -174,6 +176,26 @@
         "no_description": "No description",
         "no_transactions": "No transactions"
     },
+    "debt_requests": {
+        "title": "Send Debt Request",
+        "send_to_friend": "Send to Friend",
+        "send_request": "Send Request",
+        "receiver_email": "Friend's Email",
+        "debt_type": "Debt Type",
+        "debt_type_i_gave": "I gave to friend",
+        "debt_type_i_borrowed": "I borrowed from friend",
+        "rejection_reason": "Rejection Reason (Optional)",
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "incoming": "Incoming",
+        "outgoing": "Outgoing",
+        "accept": "Accept",
+        "reject": "Reject",
+        "says_you_owe": "says you owe",
+        "you_sent_to": "Request to"
+    },
     "counterparties": {
         "title": "Counterparties",
         "add": "Add",
@@ -207,13 +229,19 @@
         "pay_title": "Make Payment",
         "remaining_debt": "Remaining Debt",
         "pay_amount_label": "Amount",
-        "pay_amount_placeholder": "Payment amount",
+        "pay_amount_placeholder": "Enter amount",
         "account_label": "Source/Destination Account",
         "confirm_pay": "Confirm Payment",
-        "history_title": "History",
+        "record_receipt": "Record Receipt",
+        "tab_active": "Active",
+        "tab_history": "History",
+        "history_title": "Transaction History",
         "no_history": "No payment history",
+        "linked_tooltip": "Connected with friend",
         "toast_added": "Debt added",
         "toast_deleted": "Deleted",
+        "audit_trail": "Activity Log",
+        "local_history": "Local Transactions",
         "confirm_delete": "Delete debt record?"
     },
     "goals": {
@@ -490,7 +518,13 @@
         "common": {
             "not_available": "N/A",
             "participants": "participants",
-            "items": "items"
+            "items": "items",
+            "amount": "Amount",
+            "name": "Name",
+            "notes": "Notes",
+            "optional": "Optional",
+            "due_date": "Due Date",
+            "cancel": "Cancel"
         },
         "modal": {
             "participant_title": "Participant Details",

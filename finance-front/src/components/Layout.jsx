@@ -19,10 +19,18 @@ export default function Layout() {
   const { t } = useTranslation(); // Init hook
   const user = useFinanceStore(s => s.user);
   const logout = useFinanceStore(s => s.logout);
-  const unreadNotifications = useFinanceStore(s => s.unreadNotifications);
+  const unreadCount = useFinanceStore(s => s.unreadCount);
+  const fetchUnreadCount = useFinanceStore(s => s.fetchUnreadCount);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = React.useState(false);
+
+  // Polling for notifications (every 30s)
+  React.useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
   // Global Modals State
   const activeModal = useFinanceStore(s => s.activeModal);
@@ -60,20 +68,9 @@ export default function Layout() {
     } `;
 
   return (
-    <div className="flex h-screen overflow-hidden text-zinc-900 font-sans" style={{
-      background: '#f6f1e9',
-      backgroundImage: `
-        radial-gradient(circle at 15% 40%, rgba(20, 184, 166, 0.12) 0%, transparent 28%),
-        radial-gradient(circle at 85% 30%, rgba(251, 146, 60, 0.12) 0%, transparent 28%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(246, 241, 233, 0.8) 100%)
-      `
-    }}>
+    <div className="flex h-screen overflow-hidden text-zinc-900 font-sans bg-canvas transition-colors duration-300">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-80 h-full z-30" style={{
-        background: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.4)'
-      }}>
+      <aside className="sidebar hidden lg:flex flex-col w-80 h-full z-30 transition-colors duration-300">
         <div className="flex items-center gap-3 px-8 py-8">
           <div className="p-3 bg-gradient-to-tr from-teal-700 to-amber-500 rounded-2xl shadow-xl shadow-teal-700/30">
             <Wallet className="text-white" size={28} strokeWidth={2} />
@@ -89,14 +86,14 @@ export default function Layout() {
             <NavLink key={item.to} to={item.to} className={({ isActive }) =>
               `flex items-center gap-4 px-6 py-4 mx-2 rounded-2xl transition-all duration-300 font-bold group
                ${isActive
-                ? 'bg-white shadow-xl shadow-teal-700/10 text-teal-700 translate-x-2'
-                : 'text-zinc-500 hover:text-zinc-900 hover:bg-white/50 hover:pl-8'
+                ? 'bg-surface shadow-xl shadow-teal-700/10 text-teal-700 translate-x-2'
+                : 'text-zinc-500 hover:text-zinc-900 hover:bg-surface/50 hover:pl-8'
               } `
             }>
               <item.icon size={22} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
               <span className="font-bold tracking-wide">{item.label}</span>
-              {item.to === '/notifications' && unreadNotifications > 0 && (
-                <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg shadow-rose-500/30">{unreadNotifications}</span>
+              {item.to === '/notifications' && unreadCount > 0 && (
+                <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg shadow-rose-500/30">{unreadCount}</span>
               )}
             </NavLink>
           ))}
@@ -120,50 +117,74 @@ export default function Layout() {
         </div>
       </main>
 
-      {/* --- MASTERPIECE MOBILE NAVIGATION (Floating Dock) --- */}
-      <div className="lg:hidden fixed bottom-6 left-4 right-4 z-50 flex justify-center pb-safe">
-        <nav className="flex items-center gap-1 p-2 rounded-[2rem] bg-white/90 backdrop-blur-2xl border border-white/50 shadow-2xl shadow-teal-900/10 ring-1 ring-black/5">
+      {/* --- MASTERPIECE MOBILE NAVIGATION (Floating Island) --- */}
+      <div className="lg:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[350px] px-4 pb-safe">
+        <nav className="relative flex items-center justify-between px-6 py-4 rounded-[2.5rem] bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-2xl shadow-zinc-900/20 ring-1 ring-black/5 dark:ring-white/5">
 
-          <NavLink to="/" className={mobileLinkClass}><LayoutDashboard size={22} strokeWidth={2.5} /></NavLink>
-          <NavLink to="/analytics" className={mobileLinkClass}><ChartPie size={22} strokeWidth={2.5} /></NavLink>
+          <NavLink to="/" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+            {({ isActive }) => (
+              <>
+                <LayoutDashboard size={24} strokeWidth={2.5} />
+                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-600 dark:bg-teal-400 rounded-full" />}
+              </>
+            )}
+          </NavLink>
 
-          {/* CENTRAL ACTION BUTTON */}
-          <div className="mx-2 -mt-8 relative">
+          <NavLink to="/analytics" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+            {({ isActive }) => (
+              <>
+                <ChartPie size={24} strokeWidth={2.5} />
+                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-600 dark:bg-teal-400 rounded-full" />}
+              </>
+            )}
+          </NavLink>
+
+          {/* CENTRAL ACTION BUTTON (Breakout) */}
+          <div className="relative -mt-12 z-20">
+            {/* Decorative Ring/Background to blend with bar if needed, or standalone */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-16 h-8 bg-transparent rounded-full box-content" />
+
             <AnimatePresence>
               {isActionMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.5, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.5, y: 10 }}
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col gap-3 mb-2 items-center"
+                  initial={{ opacity: 0, scale: 0.5, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: -10 }}
+                  exit={{ opacity: 0, scale: 0.5, y: 30 }}
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 flex flex-col gap-2 items-center"
                 >
-                  <button onClick={() => { openModal('transaction', { initialType: 'income' }); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-5 py-3 bg-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-500/30 whitespace-nowrap active:scale-95 transition-transform">
-                    <TrendingUp size={20} /> <span className="font-bold">{t('dashboard.monthly_income')}</span>
+                  <button onClick={() => { openModal('transaction', { initialType: 'income' }); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-4 py-3 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/30 font-bold text-sm whitespace-nowrap">
+                    <TrendingUp size={18} /> {t('dashboard.monthly_income')}
                   </button>
-                  <button onClick={() => { openModal('transaction', { initialType: 'expense' }); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-5 py-3 bg-rose-600 text-white rounded-2xl shadow-lg shadow-rose-500/30 whitespace-nowrap active:scale-95 transition-transform">
-                    <TrendingDown size={20} /> <span className="font-bold">{t('dashboard.monthly_expense')}</span>
+                  <button onClick={() => { openModal('transaction', { initialType: 'expense' }); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-4 py-3 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-500/30 font-bold text-sm whitespace-nowrap">
+                    <TrendingDown size={18} /> {t('dashboard.monthly_expense')}
                   </button>
-                  <button onClick={() => { openModal('transfer'); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-5 py-3 bg-slate-800 text-white rounded-2xl shadow-lg shadow-slate-800/30 whitespace-nowrap active:scale-95 transition-transform">
-                    <ArrowRightLeft size={20} /> <span className="font-bold">Transfer</span>
+                  <button onClick={() => { openModal('transfer'); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-4 py-3 bg-indigo-500 text-white rounded-2xl shadow-lg shadow-indigo-500/30 font-bold text-sm whitespace-nowrap">
+                    <ArrowRightLeft size={18} /> Transfer
                   </button>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-              className={`flex items-center justify-center w-16 h-16 rounded-[1.5rem] text-white shadow-2xl shadow-teal-700/50 transform active:scale-95 transition-all duration-300 border-[3px] border-white/80 ${isActionMenuOpen ? 'rotate-45 bg-zinc-900' : 'rotate-0'}`}
-              style={{
-                background: isActionMenuOpen ? '#18181b' : 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
-              }}
+              className={`flex items-center justify-center w-16 h-16 rounded-[1.2rem] shadow-xl shadow-teal-600/30 text-white transition-all duration-300 border-[4px] border-white dark:border-zinc-900 ${isActionMenuOpen ? 'bg-zinc-800 rotate-45' : 'bg-teal-600 rotate-0'}`}
             >
               <Plus size={32} strokeWidth={3} />
-            </button>
+            </motion.button>
           </div>
 
-          <NavLink to="/history" className={mobileLinkClass}><History size={22} strokeWidth={2.5} /></NavLink>
-          <button onClick={() => setIsMobileMenuOpen(true)} className={mobileLinkClass({})}>
-            <Menu size={22} strokeWidth={2.5} />
+          <NavLink to="/history" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+            {({ isActive }) => (
+              <>
+                <History size={24} strokeWidth={2.5} />
+                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-600 dark:bg-teal-400 rounded-full" />}
+              </>
+            )}
+          </NavLink>
+
+          <button onClick={() => setIsMobileMenuOpen(true)} className={`relative z-10 p-2 transition-colors ${isMobileMenuOpen ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+            <Menu size={24} strokeWidth={2.5} />
           </button>
         </nav>
       </div>
@@ -176,7 +197,8 @@ export default function Layout() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-[60] lg:hidden bg-[#f6f1e9]/95 backdrop-blur-3xl flex flex-col"
+
+            className="fixed inset-0 z-[60] lg:hidden bg-canvas/95 backdrop-blur-3xl flex flex-col"
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 mt-safe">

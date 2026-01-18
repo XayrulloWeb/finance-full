@@ -82,13 +82,13 @@ export default function Dashboard() {
             ) : aiForecast ? (
                 <GlassCard className="relative overflow-hidden">
                     <div className="flex items-center justify-between">
-                        <div className="text-xs font-bold uppercase text-zinc-500 tracking-wider">{t('ai.forecast.title')}</div>
+                        <div className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">{t('ai.forecast.title')}</div>
                         <TrendingUp className="text-emerald-500" size={18} strokeWidth={2.5} />
                     </div>
                     <div className="mt-3 text-2xl font-black text-zinc-900">
                         {isPrivacy ? '?????' : new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0))} {currency}
                     </div>
-                    <p className="text-sm text-zinc-500 font-medium mt-2">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-2">
                         {aiForecast.message || t('ai.forecast.message', { value: new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0)) })}
                     </p>
                 </GlassCard>
@@ -98,7 +98,7 @@ export default function Dashboard() {
             {/* Top Expense Categories */}
             <section>
                 <div className="flex justify-between items-center mb-4 px-1">
-                    <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">🔥 {t('analytics.top_expenses')}</h2>
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">🔥 {t('analytics.top_expenses')}</h2>
                 </div>
                 <GlassCard>
                     <div className="space-y-4">
@@ -108,8 +108,8 @@ export default function Dashboard() {
                                     <div className="flex items-center gap-3">
                                         <div className="text-2xl">{cat.icon}</div>
                                         <div>
-                                            <div className="font-bold text-zinc-900">{cat.name}</div>
-                                            <div className="text-xs text-zinc-400">
+                                            <div className="font-bold text-zinc-900 dark:text-zinc-100">{cat.name}</div>
+                                            <div className="text-xs text-zinc-400 dark:text-zinc-500">
                                                 {isPrivacy ? '•••••' : new Intl.NumberFormat('ru-RU').format(Math.round(cat.amount))} {currency}
                                             </div>
                                         </div>
@@ -133,7 +133,7 @@ export default function Dashboard() {
 
             {/* Accounts List */}
             <section>
-                <h2 className="text-xl font-bold text-zinc-900 mb-4 px-1 flex gap-2">
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4 px-1 flex gap-2">
                     <CreditCard className="text-primary" strokeWidth={2.5} /> {t('settings.accounts')}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -150,21 +150,21 @@ export default function Dashboard() {
                                             className="absolute inset-0 rounded-2xl opacity-90"
                                             style={{ background: `linear-gradient(135deg, ${acc.color}55, ${acc.color})` }}
                                         />
-                                        <div className="relative w-full h-full rounded-[14px] bg-white/80 flex items-center justify-center text-xl shadow-sm">
+                                        <div className="relative w-full h-full rounded-[14px] bg-white/80 dark:bg-slate-900/80 flex items-center justify-center text-xl shadow-sm">
                                             {acc.icon}
                                         </div>
                                     </div>
                                     <div>
-                                        <div className="font-bold text-zinc-900 group-hover:text-primary transition-colors">
+                                        <div className="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors">
                                             {acc.name}
                                         </div>
-                                        <div className="text-xs font-bold text-zinc-500 bg-zinc-100 px-2 py-1 rounded-md inline-flex mt-1">
+                                        <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-white/10 px-2 py-1 rounded-md inline-flex mt-1">
                                             {acc.currency}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-lg font-black tabular-nums text-zinc-900">
+                                    <div className="text-lg font-black tabular-nums text-zinc-900 dark:text-white">
                                         {isPrivacy ? '••••' : new Intl.NumberFormat('ru-RU').format(getAccountBalance(acc.id))}
                                     </div>
                                 </div>
@@ -186,7 +186,7 @@ export default function Dashboard() {
 
             {/* Recent Transactions */}
             <section>
-                <h2 className="text-xl font-bold text-zinc-900 mb-4 px-1">{t('dashboard.recent_activity')}</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4 px-1">{t('dashboard.recent_activity')}</h2>
                 <div className="space-y-3">
                     {recentTransactions.length > 0 ? (
                         recentTransactions.map(t => (

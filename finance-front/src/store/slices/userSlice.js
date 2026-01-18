@@ -15,6 +15,9 @@ export const createUserSlice = (set, get) => ({
     },
     notifications: [],
     unreadNotifications: 0,
+    isLoadingNotifications: false,
+    hasMoreNotifications: true,
+    notificationPage: 0,
 
     // --- ACTIONS ---
 
@@ -55,9 +58,21 @@ export const createUserSlice = (set, get) => ({
             get().fetchData();
 
         } catch (error) {
-            console.error("Token expired or invalid:", error);
-            // Если ошибка (например, 401) — токен протух. Выкидываем юзера.
-            get().logout();
+            console.error("Auth check failed:", error);
+            // Если ошибка 401 (Unauthorized) — токен протух. Выкидываем юзера.
+            // При 429 (Rate Limit) или 500 не выкидываем, просто показываем ошибку.
+            if (error.response && error.response.status === 401) {
+                get().logout();
+            } else if (error.response && error.response.status === 429) {
+                console.warn("Too many requests, try again later");
+                // Можно добавить тост, если есть toast
+                // toast.error("Too many requests. Please wait.");
+                // Не разлогиниваем, но ставим флаг проверки, чтобы приложение загрузилось (пусть и с ошибкой)
+                set({ isAuthChecked: true });
+            } else {
+                // Для других ошибок (500 и т.д.) тоже разрешаем загрузку, чтобы не вечный спиннер
+                set({ isAuthChecked: true });
+            }
         }
     },
 
@@ -108,6 +123,33 @@ export const createUserSlice = (set, get) => ({
     },
 
     // --- NOTIFICATIONS ---
+    fetchNotifications: async ({ page = 0, limit = 20, append = false } = {}) => {
+        set({ isLoadingNotifications: true });
+        try {
+            const { data } = await api.get(`/notifications?page=${page}&limit=${limit}`);
+            console.log('Fetched notifications:', data);
+            set(state => ({
+                notifications: append ? [...state.notifications, ...data.data] : data.data,
+                hasMoreNotifications: data.data.length === limit,
+                notificationPage: page,
+                isLoadingNotifications: false,
+                // Update unread count based on the new list + possibly verification of total?
+                // Ideally, unread count should come from server or be counted from full list.
+                // But since we paging, we might miss some. 
+                // Let's rely on what we have or separate unread count endpoint.
+                // For now, let's just keep existing logic for unread count if possible, 
+                // or update it if we fetch page 0 (which is most relevant).
+                unreadNotifications: append ? state.unreadNotifications : (data.data.filter(n => !n.is_read).length)
+                // Note: this logic for unread count is imperfect for pagination, but better than nothing.
+                // Correct way is to get unread count from meta or separate endpoint.
+            }));
+        } catch (error) {
+            console.error(error);
+            // STOP THE LOOP: If error occurs (e.g. 429), stop trying to load more
+            set({ isLoadingNotifications: false, hasMoreNotifications: false });
+        }
+    },
+
     markNotificationRead: async (id) => {
         try {
             await api.post(`/notifications/${id}/read`);

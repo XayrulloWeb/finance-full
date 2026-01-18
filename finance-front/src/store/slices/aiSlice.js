@@ -110,10 +110,10 @@ export const createAiSlice = (set, get) => ({
     fetchAiCategorySuggestions: async () => {
         const now = Date.now();
         const { aiCategorySuggestions, aiCategoriesAttemptAt, aiCategoriesFetchedAt } = get();
-        if (aiCategorySuggestions && aiCategorySuggestions.length > 0 && aiCategoriesFetchedAt && now - aiCategoriesFetchedAt < 300000) {
+        if (aiCategorySuggestions && aiCategorySuggestions.length > 0 && aiCategoriesFetchedAt && now - aiCategoriesFetchedAt < 1800000) {
             return;
         }
-        if (aiCategoriesAttemptAt && now - aiCategoriesAttemptAt < 30000) {
+        if (aiCategoriesAttemptAt && now - aiCategoriesAttemptAt < 60000) {
             return;
         }
         set({ isAiCategoriesLoading: true, aiCategoriesAttemptAt: now });

@@ -4,7 +4,7 @@ const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const createUserRateLimit = (options = {}) => {
     const defaultOptions = {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 50, // 50 requests per user per window
+        max: 1000, // Increased from 50 to 1000 to match global limit and support dev usage
         standardHeaders: true,
         legacyHeaders: false,
         message: { error: 'Too many requests, please try again later.' },

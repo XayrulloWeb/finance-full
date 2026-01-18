@@ -2,6 +2,25 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const { createUserRateLimit, createAuthRateLimit } = require('../middleware/rateLimitMiddleware');
+const validate = require('../middleware/validateMiddleware');
+const {
+    registerSchema,
+    loginSchema,
+    verifySchema,
+    transactionSchema,
+    transferSchema,
+    accountSchema,
+    updateAccountSchema,
+    categorySchema,
+    counterpartySchema,
+    updateCounterpartySchema,
+    goalSchema,
+    debtSchema,
+    budgetSchema,
+    debtRequestSchema,
+    rejectDebtSchema,
+    payLinkedDebtSchema
+} = require('../lib/validation');
 
 const authController = require('../controllers/authController');
 const dataController = require('../controllers/dataController');
@@ -14,21 +33,16 @@ const financeController = require('../controllers/financeController');
 const adminController = require('../controllers/adminController');
 const adminMiddleware = require('../middleware/adminMiddleware');
 const aiController = require('../controllers/aiController');
+const debtRequestController = require('../controllers/debtRequestController');
 
 // Rate limiters
 const userLimiter = createUserRateLimit();
 const authLimiter = createAuthRateLimit();
 
 // --- AUTH ---
-router.post('/auth/register', authLimiter, authController.register);
-
-
-router.get('/insights/smart', authMiddleware, userLimiter, dataController.getAiInsight);
-
-// Вход
-router.post('/auth/login', authLimiter, authController.login);
-
-router.post('/auth/verify', authLimiter, authController.verifyEmail);
+router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
+router.post('/auth/login', authLimiter, validate(loginSchema), authController.login);
+router.post('/auth/verify', authLimiter, validate(verifySchema), authController.verifyEmail);
 
 // --- DATA READ ---
 router.get('/dashboard', authMiddleware, userLimiter, dataController.getDashboard);
@@ -43,6 +57,7 @@ router.delete('/recurring/:id', authMiddleware, userLimiter, recurringController
 router.get('/settings', authMiddleware, userLimiter, dataController.getSettings);
 router.put('/settings', authMiddleware, userLimiter, dataController.updateSettings);
 router.get('/notifications', authMiddleware, userLimiter, dataController.getNotifications);
+router.get('/notifications/unread-count', authMiddleware, userLimiter, dataController.getUnreadNotificationsCount);
 router.post('/notifications/read-all', authMiddleware, userLimiter, dataController.markAllNotificationsRead);
 router.post('/notifications/:id/read', authMiddleware, userLimiter, dataController.markNotificationRead);
 router.get('/insights', authMiddleware, userLimiter, dataController.getInsights);
@@ -62,40 +77,52 @@ router.get('/ai/categories/suggest', authMiddleware, userLimiter, aiController.g
 
 // --- TRANSACTIONS ---
 router.get('/transactions', authMiddleware, userLimiter, txController.getTransactions);
-router.post('/transactions', authMiddleware, userLimiter, txController.createTransaction);
-router.post('/transactions/transfer', authMiddleware, userLimiter, txController.performTransfer);
+router.post('/transactions', authMiddleware, userLimiter, validate(transactionSchema), txController.createTransaction);
+router.post('/transactions/transfer', authMiddleware, userLimiter, validate(transferSchema), txController.performTransfer);
 router.put('/transactions/:id', authMiddleware, userLimiter, txController.updateTransaction);
 router.delete('/transactions/:id', authMiddleware, userLimiter, txController.deleteTransaction);
 
 // --- ACCOUNTS ---
-router.post('/accounts', authMiddleware, userLimiter, accountController.createAccount);
-router.put('/accounts/:id', authMiddleware, userLimiter, accountController.updateAccount);
+router.post('/accounts', authMiddleware, userLimiter, validate(accountSchema), accountController.createAccount);
+router.put('/accounts/:id', authMiddleware, userLimiter, validate(updateAccountSchema), accountController.updateAccount);
 router.delete('/accounts/:id', authMiddleware, userLimiter, accountController.deleteAccount);
 
 // --- CATEGORIES ---
-router.post('/categories', authMiddleware, userLimiter, catController.createCategory);
+router.post('/categories', authMiddleware, userLimiter, validate(categorySchema), catController.createCategory);
 router.delete('/categories/:id', authMiddleware, userLimiter, catController.deleteCategory);
 
 // --- COUNTERPARTIES ---
 router.get('/counterparties', authMiddleware, userLimiter, cpController.getCounterparties);
-router.post('/counterparties', authMiddleware, userLimiter, cpController.createCounterparty);
-router.put('/counterparties/:id', authMiddleware, userLimiter, cpController.updateCounterparty);
+router.post('/counterparties', authMiddleware, userLimiter, validate(counterpartySchema), cpController.createCounterparty);
+router.put('/counterparties/:id', authMiddleware, userLimiter, validate(updateCounterpartySchema), cpController.updateCounterparty);
 router.delete('/counterparties/:id', authMiddleware, userLimiter, cpController.deleteCounterparty);
 router.post('/counterparties/:id/favorite', authMiddleware, userLimiter, cpController.toggleFavorite);
 
 // --- GOALS ---
-router.post('/goals', authMiddleware, userLimiter, financeController.createGoal);
+router.post('/goals', authMiddleware, userLimiter, validate(goalSchema), financeController.createGoal);
 router.delete('/goals/:id', authMiddleware, userLimiter, financeController.deleteGoal);
 router.post('/goals/:id/topup', authMiddleware, userLimiter, financeController.topUpGoal);
 
 // --- DEBTS ---
-router.post('/debts', authMiddleware, userLimiter, financeController.createDebt);
+router.post('/debts', authMiddleware, userLimiter, validate(debtSchema), financeController.createDebt);
 router.delete('/debts/:id', authMiddleware, userLimiter, financeController.deleteDebt);
 router.post('/debts/:id/pay', authMiddleware, userLimiter, financeController.payDebt);
 
 // --- BUDGETS ---
-router.post('/budgets', authMiddleware, userLimiter, financeController.upsertBudget);
+router.post('/budgets', authMiddleware, userLimiter, validate(budgetSchema), financeController.upsertBudget);
 router.delete('/budgets/:id', authMiddleware, userLimiter, financeController.deleteBudget);
+
+// --- DEBT REQUESTS (Social Debts) ---
+router.get('/debt-requests/incoming', authMiddleware, userLimiter, debtRequestController.getIncomingRequests);
+router.get('/debt-requests/outgoing', authMiddleware, userLimiter, debtRequestController.getOutgoingRequests);
+router.get('/debt-requests/stats', authMiddleware, userLimiter, debtRequestController.getRequestStats);
+router.post('/debt-requests', authMiddleware, userLimiter, validate(debtRequestSchema), debtRequestController.createDebtRequest);
+router.post('/debt-requests/:id/accept', authMiddleware, userLimiter, debtRequestController.acceptDebtRequest);
+router.post('/debt-requests/:id/reject', authMiddleware, userLimiter, validate(rejectDebtSchema), debtRequestController.rejectDebtRequest);
+router.delete('/debt-requests/:id', authMiddleware, userLimiter, debtRequestController.cancelDebtRequest);
+
+// --- LINKED DEBTS ---
+router.get('/linked-debts/:id/activity', authMiddleware, userLimiter, debtRequestController.getLinkedDebtActivity);
 
 // --- ADMIN ---
 router.get('/admin/summary', authMiddleware, adminMiddleware, userLimiter, adminController.getAdminSummary);
@@ -107,5 +134,11 @@ router.post('/admin/users/:id/reset-password', authMiddleware, adminMiddleware, 
 router.get('/admin/content', authMiddleware, adminMiddleware, userLimiter, adminController.getAdminContent);
 router.post('/admin/content/:type/:id/action', authMiddleware, adminMiddleware, userLimiter, adminController.moderateContent);
 router.get('/admin/export', authMiddleware, adminMiddleware, userLimiter, adminController.exportUsers);
+
+// --- TEST ROUTES (Development Only) ---
+if (process.env.NODE_ENV !== 'production') {
+    const testRoutes = require('./test');
+    router.use('/test', testRoutes);
+}
 
 module.exports = router;

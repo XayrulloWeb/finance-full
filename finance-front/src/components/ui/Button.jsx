@@ -16,11 +16,11 @@ export default function Button({
 }) {
     const variants = {
         primary: 'bg-teal-700 hover:bg-teal-800 text-white shadow-lg shadow-teal-700/30 hover:shadow-teal-700/40 hover:-translate-y-0.5',
-        secondary: 'bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-200 shadow-sm hover:border-zinc-300',
-        danger: 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 shadow-sm',
-        success: 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm',
-        ghost: 'bg-transparent hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900',
-        outline: 'border-2 border-teal-700 text-teal-700 hover:bg-teal-50',
+        secondary: 'bg-white dark:bg-slate-800 hover:bg-zinc-50 dark:hover:bg-slate-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-zinc-300',
+        danger: 'bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-sm',
+        success: 'bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm',
+        ghost: 'bg-transparent hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100',
+        outline: 'border-2 border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20',
     };
 
     const sizes = {

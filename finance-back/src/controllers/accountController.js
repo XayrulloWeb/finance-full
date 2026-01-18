@@ -1,4 +1,6 @@
 const prisma = require('../lib/prisma');
+const cacheService = require('../services/cacheService');
+const logger = require('../lib/logger');
 
 exports.createAccount = async (req, res) => {
     try {
@@ -26,9 +28,12 @@ exports.createAccount = async (req, res) => {
             return account;
         });
 
+        // Invalidate cache
+        await cacheService.invalidateAfterDataChange(userId);
+
         res.json(result);
     } catch (error) {
-        console.error('Create Account Error:', error);
+        logger.error('Create Account Error', { error: error.message, userId: req.user.id });
         res.status(500).json({ error: error.message });
     }
 };
@@ -43,9 +48,13 @@ exports.deleteAccount = async (req, res) => {
         }
 
         await prisma.account.delete({ where: { id: account.id } });
+
+        // Invalidate cache
+        await cacheService.invalidateAfterDataChange(req.user.id);
+
         res.json({ success: true });
     } catch (error) {
-        console.error('Delete Account Error:', error);
+        logger.error('Delete Account Error', { error: error.message, userId: req.user.id });
         res.status(500).json({ error: error.message });
     }
 };
@@ -63,9 +72,13 @@ exports.updateAccount = async (req, res) => {
             where: { id: existing.id },
             data: req.body
         });
+
+        // Invalidate cache
+        await cacheService.invalidateAfterDataChange(req.user.id);
+
         res.json(account);
     } catch (error) {
-        console.error('Update Account Error:', error);
+        logger.error('Update Account Error', { error: error.message, userId: req.user.id });
         res.status(500).json({ error: error.message });
     }
 };

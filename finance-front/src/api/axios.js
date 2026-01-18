@@ -22,10 +22,13 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            localStorage.removeItem('token');
-            if (window.location.pathname !== '/auth') {
-                window.location.href = '/auth'; // Жесткий редирект
-            }
+            // Не делаем жесткий редирект, так как это ломает UX при временных ошибках.
+            // Просто очищаем токен. При следующем запросе userSlice сам увидит, что токена нет или 401.
+            // Но лучше даже токен не удалять тут, а дать userSlice решить.
+            // localStorage.removeItem('token'); 
+
+            // Dispatch event so userSlice can listen? Or just do nothing and let the caller handle it.
+            // Let's just return 401/403 to the caller.
         }
         return Promise.reject(error);
     }

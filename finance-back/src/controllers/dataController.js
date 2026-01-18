@@ -1,5 +1,7 @@
 const prisma = require('../lib/prisma');
 const AiService = require('../services/aiService');
+const cacheService = require('../services/cacheService');
+const logger = require('../lib/logger');
 
 // Дашборд: Аккаунты (с балансами) + Последние транзакции
 exports.getDashboard = async (req, res) => {
@@ -23,11 +25,18 @@ exports.getBootstrapData = async (req, res) => {
             prisma.account.findMany({ where: { user_id: userId }, orderBy: { name: 'asc' } }),
             prisma.category.findMany({ where: { user_id: userId }, orderBy: { name: 'asc' } }),
             prisma.budget.findMany({ where: { user_id: userId } }),
-            prisma.debt.findMany({ where: { user_id: userId, is_removed: false }, orderBy: { created_at: 'desc' } }),
+            prisma.debt.findMany({
+                where: { user_id: userId, is_removed: false },
+                orderBy: { created_at: 'desc' },
+                include: {
+                    linked_debt_a: { include: { user_b: { select: { email: true, id: true } } } },
+                    linked_debt_b: { include: { user_a: { select: { email: true, id: true } } } }
+                }
+            }),
             prisma.goal.findMany({ where: { user_id: userId, is_removed: false }, orderBy: [{ is_completed: 'asc' }, { created_at: 'asc' }] }),
             prisma.recurringTransaction.findMany({ where: { user_id: userId }, orderBy: { day_of_month: 'asc' } }),
             prisma.userSettings.findUnique({ where: { user_id: userId } }),
-            prisma.notification.findMany({ where: { user_id: userId }, orderBy: { created_at: 'desc' }, take: 50 }),
+            prisma.notification.findMany({ where: { user_id: userId }, orderBy: { created_at: 'desc' }, take: 20 }),
             prisma.counterparty.findMany({ where: { user_id: userId }, orderBy: { name: 'asc' } }),
             prisma.transaction.findMany({ where: { user_id: userId, is_removed: false }, orderBy: { date: 'desc' }, take: 5 })
         ]);
@@ -73,7 +82,14 @@ exports.getBudgets = async (req, res) => {
 
 exports.getDebts = async (req, res) => {
     try {
-        const data = await prisma.debt.findMany({ where: { user_id: req.user.id, is_removed: false }, orderBy: { created_at: 'desc' } });
+        const data = await prisma.debt.findMany({
+            where: { user_id: req.user.id, is_removed: false },
+            orderBy: { created_at: 'desc' },
+            include: {
+                linked_debt_a: { include: { user_b: { select: { email: true, id: true } } } },
+                linked_debt_b: { include: { user_a: { select: { email: true, id: true } } } }
+            }
+        });
         res.json(data);
     } catch (error) {
         console.error('Get Debts Error:', error);
@@ -127,14 +143,30 @@ exports.getSettings = async (req, res) => {
 
 exports.getNotifications = async (req, res) => {
     try {
-        const data = await prisma.notification.findMany({
-            where: { user_id: req.user.id },
-            orderBy: { created_at: 'desc' },
-            take: 50
+        const { page = 0, limit = 20 } = req.query;
+        const userId = req.user.id;
+
+        const [data, total] = await Promise.all([
+            prisma.notification.findMany({
+                where: { user_id: userId },
+                orderBy: { created_at: 'desc' },
+                skip: Number(page) * Number(limit),
+                take: Number(limit)
+            }),
+            prisma.notification.count({ where: { user_id: userId } })
+        ]);
+
+        res.json({
+            data,
+            meta: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                totalPages: Math.ceil(total / Number(limit))
+            }
         });
-        res.json(data);
     } catch (error) {
-        console.error('Get Notifications Error:', error);
+        logger.error('Get Notifications Error', { error: error.message, userId: req.user.id });
         res.status(500).json({ error: error.message });
     }
 };
@@ -161,6 +193,17 @@ exports.markAllNotificationsRead = async (req, res) => {
             data: { is_read: true }
         });
         res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getUnreadNotificationsCount = async (req, res) => {
+    try {
+        const count = await prisma.notification.count({
+            where: { user_id: req.user.id, is_read: false }
+        });
+        res.json({ count });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -282,6 +325,15 @@ exports.getAiInsight = async (req, res) => {
 exports.getAnalyticsSummary = async (req, res) => {
     try {
         const userId = req.user.id;
+
+        // Cache enabled only for default view (30 days) to avoid complexity with query params
+        const isDefaultView = !req.query.days || req.query.days == 30;
+
+        if (isDefaultView) {
+            const cached = await cacheService.getAnalytics(userId);
+            if (cached) return res.json(cached);
+        }
+
         const now = new Date();
         const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
@@ -367,7 +419,7 @@ exports.getAnalyticsSummary = async (req, res) => {
             });
         }
 
-        res.json({
+        const responseData = {
             month: { start: currentMonthStart.toISOString(), end: currentMonthEnd.toISOString() },
             totals: {
                 income,
@@ -376,7 +428,13 @@ exports.getAnalyticsSummary = async (req, res) => {
             },
             expenseByCategory,
             trend
-        });
+        };
+
+        if (isDefaultView) {
+            await cacheService.setAnalytics(userId, responseData);
+        }
+
+        res.json(responseData);
     } catch (error) {
         console.error('Analytics Summary Error:', error);
         res.status(500).json({ error: 'Failed to fetch analytics summary' });

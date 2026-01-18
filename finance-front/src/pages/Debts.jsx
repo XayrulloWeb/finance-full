@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Plus, Trash2, CheckCircle, ArrowUpRight, ArrowDownLeft, Calendar, User, Wallet } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, ArrowUpRight, ArrowDownLeft, Calendar, User, Wallet, Users, Link } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { toast } from '../components/ui/Toast';
+import DebtRequestModal from '../components/modals/DebtRequestModal';
+import DebtRequestCard from '../components/DebtRequestCard';
+import DebtDetailsModal from '../components/modals/DebtDetailsModal';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -16,15 +19,28 @@ export default function Debts() {
     const fetchAiDebtsAdvice = useFinanceStore(s => s.fetchAiDebtsAdvice);
     const aiDebtsAdvice = useFinanceStore(s => s.aiDebtsAdvice);
     const isAiDebtsLoading = useFinanceStore(s => s.isAiDebtsLoading);
+
+    // Debt Requests
+    const fetchDebtRequests = useFinanceStore(s => s.fetchDebtRequests);
+    const incomingDebtRequests = useFinanceStore(s => s.incomingDebtRequests);
+    const outgoingDebtRequests = useFinanceStore(s => s.outgoingDebtRequests);
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isDebtRequestModalOpen, setIsDebtRequestModalOpen] = useState(false);
     const [payModalDebt, setPayModalDebt] = useState(null);
     const [viewHistoryDebt, setViewHistoryDebt] = useState(null);
     const [payAmount, setPayAmount] = useState('');
     const [payAccountId, setPayAccountId] = useState(accounts?.[0]?.id || '');
 
+    const [activeTab, setActiveTab] = useState('active'); // 'active' | 'history'
+
     useEffect(() => {
-        fetchAiDebtsAdvice();
-    }, [fetchAiDebtsAdvice]);
+        if (!aiDebtsAdvice && !isAiDebtsLoading) {
+            fetchAiDebtsAdvice();
+        }
+        fetchDebtRequests();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const [form, setForm] = useState({ name: '', amount: '', type: 'i_owe', due_date: '', contact_phone: '' });
 
@@ -60,11 +76,25 @@ export default function Debts() {
         }).format(val);
     };
 
-    const activeDebts = debts.filter(d => !d.is_closed);
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        // Force DD.MM.YYYY format to avoid locale weirdness like "2026 M01 31"
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
+    };
 
+    // FILTER DEBTS
+    const displayedDebts = debts.filter(d => {
+        if (activeTab === 'active') return !d.is_closed;
+        if (activeTab === 'history') return d.is_closed;
+        return true;
+    });
 
-    const totalIOwe = activeDebts.filter(d => d.type === 'i_owe').reduce((sum, d) => sum + (d.amount - d.paid_amount), 0);
-    const totalOwesMe = activeDebts.filter(d => d.type === 'owes_me').reduce((sum, d) => sum + (d.amount - d.paid_amount), 0);
+    const totalIOwe = debts.filter(d => !d.is_closed && d.type === 'i_owe').reduce((sum, d) => sum + (d.amount - d.paid_amount), 0);
+    const totalOwesMe = debts.filter(d => !d.is_closed && d.type === 'owes_me').reduce((sum, d) => sum + (d.amount - d.paid_amount), 0);
 
     return (
         <div className="space-y-6 sm:space-y-8 animate-fade-in custom-scrollbar pb-28 sm:pb-32">
@@ -76,7 +106,12 @@ export default function Debts() {
                     </h1>
                     <p className="text-zinc-500 mt-1">{t('debts.subtitle')}</p>
                 </div>
-                <Button onClick={() => setIsCreateModalOpen(true)} icon={Plus}>{t('debts.new_record')}</Button>
+                <div className="flex gap-2">
+                    <Button onClick={() => setIsDebtRequestModalOpen(true)} icon={Users} variant="secondary">
+                        {t('debt_requests.send_to_friend', 'Send to Friend')}
+                    </Button>
+                    <Button onClick={() => setIsCreateModalOpen(true)} icon={Plus}>{t('debts.new_record')}</Button>
+                </div>
             </div>
 
             {/* AI Advice */}
@@ -110,14 +145,68 @@ export default function Debts() {
                 </GlassCard>
             </div>
 
-            {/* ACTIVE DEBTS LIST */}
-            <h2 className="text-xl font-bold flex items-center gap-2 text-zinc-900">
-                <CheckCircle size={20} className="text-indigo-600" strokeWidth={2.5} /> {t('debts.active')}
-            </h2>
+            {/* PENDING DEBT REQUESTS */}
+            {(incomingDebtRequests?.length > 0 || outgoingDebtRequests?.length > 0) && (
+                <>
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-zinc-900">
+                        <Users size={20} className="text-indigo-600" strokeWidth={2.5} />
+                        {t('debt_requests.title', 'Debt Requests')}
+                        {incomingDebtRequests?.length > 0 && (
+                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 text-xs font-bold rounded-full">
+                                {incomingDebtRequests.length}
+                            </span>
+                        )}
+                    </h2>
+
+                    <div className="space-y-4">
+                        {incomingDebtRequests?.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold text-zinc-500 mb-3 uppercase">
+                                    {t('debt_requests.incoming', 'Incoming')}
+                                </h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {incomingDebtRequests.map(req => (
+                                        <DebtRequestCard key={req.id} request={req} type="incoming" />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {outgoingDebtRequests?.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold text-zinc-500 mb-3 uppercase">
+                                    {t('debt_requests.outgoing', 'Outgoing')}
+                                </h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {outgoingDebtRequests.map(req => (
+                                        <DebtRequestCard key={req.id} request={req} type="outgoing" />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* TABS & DEBTS LIST */}
+            <div className="flex items-center gap-4 mb-4">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`px-4 py-2 rounded-xl font-bold transition-all ${activeTab === 'active' ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                >
+                    {t('debts.tab_active')}
+                </button>
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={`px-4 py-2 rounded-xl font-bold transition-all ${activeTab === 'history' ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                >
+                    {t('debts.tab_history')}
+                </button>
+            </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-                <AnimatePresence>
-                    {activeDebts.map(debt => {
+                <AnimatePresence mode='popLayout'>
+                    {displayedDebts.map(debt => {
                         const remaining = debt.amount - debt.paid_amount;
                         const percent = (debt.paid_amount / debt.amount) * 100;
                         const isIOwe = debt.type === 'i_owe';
@@ -133,15 +222,42 @@ export default function Debts() {
                                 <GlassCard className="relative overflow-hidden group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${isIOwe ? 'bg-rose-100 text-rose-500' : 'bg-emerald-100 text-emerald-600'}`}>
-                                                <User size={20} strokeWidth={2.5} />
+                                            {/* Direction Icon */}
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm border ${isIOwe ? 'bg-rose-50 text-rose-500 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'} `}>
+                                                {isIOwe ? <ArrowDownLeft size={24} strokeWidth={2.5} /> : <ArrowUpRight size={24} strokeWidth={2.5} />}
                                             </div>
+
                                             <div>
-                                                <div className="font-bold text-lg text-zinc-900">{debt.name}</div>
-                                                <div className="text-xs font-medium text-zinc-400 flex items-center gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-bold text-lg text-zinc-900 leading-tight flex items-center gap-1">
+                                                        {debt.name}
+                                                        {debt.is_linked && (
+                                                            <Link
+                                                                size={16}
+                                                                className="text-blue-500"
+                                                                strokeWidth={2.5}
+                                                                title={t('debts.linked_tooltip', 'Connected with friend')}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    {/* Explicit Badge */}
+                                                    <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${isIOwe ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                        {isIOwe ? t('debts.i_owe') : t('debts.owes_me')}
+                                                    </span>
+                                                </div>
+
+                                                {/* Partner Info */}
+                                                {(debt.linked_debt_a?.user_b || debt.linked_debt_b?.user_a) && (
+                                                    <div className="text-xs font-semibold text-indigo-600 flex items-center gap-1 mt-0.5">
+                                                        <Users size={12} strokeWidth={2.5} />
+                                                        {(debt.linked_debt_a?.user_b || debt.linked_debt_b?.user_a).email}
+                                                    </div>
+                                                )}
+
+                                                <div className="text-xs font-medium text-zinc-400 flex items-center gap-2 mt-1">
                                                     {debt.due_date && (
                                                         <span className="flex items-center gap-1 bg-zinc-100 px-2 py-0.5 rounded-md text-zinc-600">
-                                                            <Calendar size={10} strokeWidth={2.5} /> {debt.due_date}
+                                                            <Calendar size={12} strokeWidth={2.5} /> {formatDate(debt.due_date)}
                                                         </span>
                                                     )}
                                                 </div>
@@ -149,7 +265,7 @@ export default function Debts() {
                                         </div>
 
                                         <div className="text-right">
-                                            <div className={`font-black text-xl ${isIOwe ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                            <div className={`font-black text-xl ${isIOwe ? 'text-rose-500' : 'text-emerald-600'} `}>
                                                 {formatCurrency(remaining)}
                                             </div>
                                             <div className="text-xs text-zinc-400 font-bold">
@@ -162,8 +278,8 @@ export default function Debts() {
                                     <div className="h-2 bg-zinc-100 rounded-full mb-4 overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
-                                            animate={{ width: `${percent}%` }}
-                                            className={`h-full ${isIOwe ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                            animate={{ width: `${percent}% ` }}
+                                            className={`h-full ${isIOwe ? 'bg-rose-500' : 'bg-emerald-500'} `}
                                         />
                                     </div>
 
@@ -176,9 +292,13 @@ export default function Debts() {
                                         >
                                             <Calendar size={18} strokeWidth={2.5} />
                                         </button>
-                                        <Button size="sm" onClick={() => setPayModalDebt(debt)} className="flex-1">
-                                            {t('debts.pay')}
-                                        </Button>
+
+                                        {!debt.is_closed && (
+                                            <Button size="sm" onClick={() => setPayModalDebt(debt)} className="flex-1">
+                                                {isIOwe ? t('debts.pay') : t('debts.record_receipt')}
+                                            </Button>
+                                        )}
+
                                         <button
                                             onClick={() => handleDelete(debt.id)}
                                             className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition"
@@ -192,7 +312,7 @@ export default function Debts() {
                     })}
                 </AnimatePresence>
 
-                {activeDebts.length === 0 && (
+                {displayedDebts.length === 0 && (
                     <div className="col-span-full py-12 text-center text-zinc-400 border-2 border-dashed border-zinc-200 rounded-2xl">
                         <CheckCircle size={48} className="mx-auto mb-4 opacity-20" strokeWidth={1} />
                         <p>{t('debts.empty')}</p>
@@ -205,13 +325,13 @@ export default function Debts() {
                 <div className="space-y-4">
                     <div className="flex p-1 bg-zinc-100 rounded-xl border border-zinc-200">
                         <button
-                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'i_owe' ? 'bg-white shadow text-rose-500' : 'text-zinc-500'}`}
+                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'i_owe' ? 'bg-white shadow text-rose-500' : 'text-zinc-500'} `}
                             onClick={() => setForm({ ...form, type: 'i_owe' })}
                         >
                             {t('debts.type_i_owe')}
                         </button>
                         <button
-                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'owes_me' ? 'bg-white shadow text-emerald-600' : 'text-zinc-500'}`}
+                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'owes_me' ? 'bg-white shadow text-emerald-600' : 'text-zinc-500'} `}
                             onClick={() => setForm({ ...form, type: 'owes_me' })}
                         >
                             {t('debts.type_owes_me')}
@@ -293,28 +413,18 @@ export default function Debts() {
                 </div>
             </Modal >
 
-            {/* HISTORY MODAL */}
-            <Modal isOpen={!!viewHistoryDebt} onClose={() => setViewHistoryDebt(null)} title={`${t('debts.history_title')}: ${viewHistoryDebt?.name}`}>
-                <div className="max-h-[50vh] overflow-y-auto space-y-3 custom-scrollbar">
-                    {useFinanceStore.getState().transactions
-                        .filter(t => t.comment && t.comment.includes(`Возврат долга: ${viewHistoryDebt?.name}`))
-                        .map(tx => (
-                            <div key={tx.id} className="flex justify-between items-center p-3 bg-white border border-zinc-200 rounded-xl shadow-sm">
-                                <div>
-                                    <div className="text-zinc-900 font-bold text-sm">{tx.comment}</div>
-                                    <div className="text-xs text-zinc-400">{new Date(tx.date).toLocaleDateString(i18n.language === 'uz' ? 'uz-UZ' : i18n.language === 'en' ? 'en-US' : 'ru-RU')}</div>
-                                </div>
-                                <div className={`font-bold tabular-nums ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                                </div>
-                            </div>
-                        ))
-                    }
-                    {viewHistoryDebt && useFinanceStore.getState().transactions.filter(t => t.comment && t.comment.includes(`Возврат долга: ${viewHistoryDebt.name}`)).length === 0 && (
-                        <div className="text-center text-zinc-400 py-6">{t('debts.no_history')}</div>
-                    )}
-                </div>
-            </Modal>
+            {/* HISTORY MODAL (Audit Trail) */}
+            <DebtDetailsModal
+                isOpen={!!viewHistoryDebt}
+                onClose={() => setViewHistoryDebt(null)}
+                debt={viewHistoryDebt}
+            />
+
+            {/* DEBT REQUEST MODAL */}
+            <DebtRequestModal
+                isOpen={isDebtRequestModalOpen}
+                onClose={() => setIsDebtRequestModalOpen(false)}
+            />
         </div >
     );
 }

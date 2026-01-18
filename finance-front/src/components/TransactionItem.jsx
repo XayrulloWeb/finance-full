@@ -49,7 +49,7 @@ export default function TransactionItem({ transaction, category, account, counte
     return (
         <div className="relative mb-3 group select-none touch-pan-y">
             {/* Background Actions */}
-            <div className="absolute inset-0 flex items-center justify-between rounded-2xl px-4 bg-zinc-100">
+            <div className="absolute inset-0 flex items-center justify-between rounded-2xl px-4 bg-zinc-100 dark:bg-slate-900">
                 <motion.div style={{ opacity: editOpacity }} className="flex items-center gap-2 text-indigo-600 font-bold">
                     <Pencil size={20} />
                     <span>{t('transaction_item.edit')}</span>
@@ -62,7 +62,7 @@ export default function TransactionItem({ transaction, category, account, counte
 
             {/* Foreground Card */}
             <GlassCard
-                className="relative bg-white z-10 active:cursor-grabbing"
+                className="relative bg-white dark:bg-slate-800 z-10 active:cursor-grabbing"
                 hover={false}
                 style={{ x: xSpring }}
                 drag="x"
@@ -77,22 +77,22 @@ export default function TransactionItem({ transaction, category, account, counte
                         {/* ICON BOX */}
                         <div className={`
                             w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl shadow-sm
-                            ${isTransfer ? 'bg-indigo-50 text-indigo-600' : ''}
-                            ${transaction.type === 'expense' ? 'bg-rose-50 text-rose-600' : ''}
-                            ${transaction.type === 'income' ? 'bg-emerald-50 text-emerald-600' : ''}
+                            ${isTransfer ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : ''}
+                            ${transaction.type === 'expense' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : ''}
+                            ${transaction.type === 'income' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : ''}
                         `}>
                             {category?.icon || (isTransfer ? <ArrowLeftRight strokeWidth={2.5} size={20} /> : (counterparty ? counterparty.icon : '💰'))}
                         </div>
 
                         {/* DETAILS */}
                         <div className="min-w-0">
-                            <div className="font-bold text-zinc-900 truncate text-base leading-tight mb-0.5">
+                            <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-base leading-tight mb-0.5">
                                 {isTransfer
                                     ? t('transaction_item.transfer')
                                     : (category?.name || (counterparty ? counterparty.name : t('transaction_item.uncategorized')))}
                             </div>
 
-                            <div className="flex items-center gap-2 text-xs font-bold text-zinc-400 uppercase tracking-wide">
+                            <div className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">
                                 <span>{formattedDate}</span>
                                 <span>•</span>
                                 <span className="truncate max-w-[100px]">{account?.name}</span>
@@ -106,7 +106,7 @@ export default function TransactionItem({ transaction, category, account, counte
                     </div>
 
                     {/* AMOUNT */}
-                    <div className={`text-right font-black whitespace-nowrap text-lg ${isExpense ? 'text-zinc-900' : 'text-emerald-600'}`}>
+                    <div className={`text-right font-black whitespace-nowrap text-lg ${isExpense ? 'text-zinc-900 dark:text-zinc-100' : 'text-emerald-600 dark:text-emerald-400'}`}>
                         {isExpense ? '-' : '+'}{formattedAmount}
                         <span className="text-xs text-zinc-400 ml-1 font-bold">{account?.currency}</span>
                     </div>

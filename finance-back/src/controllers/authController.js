@@ -1,9 +1,11 @@
 // src/controllers/authController.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const emailService = require('../services/emailService');
 const smsService = require('../services/smsService');
+const logger = require('../lib/logger');
 
 // Базовые категории (создаются только ПОСЛЕ подтверждения кода)
 const DEFAULT_CATEGORIES = [
@@ -49,11 +51,11 @@ exports.register = async (req, res) => {
         // 2. Генерируем данные
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
-        
-        // Генерируем 6-значный код (100000 - 999999)
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Генерируем 6-значный криптографически стойкий код (100000 - 999999)
+        const code = crypto.randomInt(100000, 1000000).toString();
         // Срок действия 10 минут
-        const codeExpiry = new Date(Date.now() + 10 * 60 * 1000); 
+        const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
         // 3. Сохраняем (или обновляем) в БД
         if (existingUser && !existingUser.is_verified) {
@@ -95,16 +97,16 @@ exports.register = async (req, res) => {
             await emailService.sendVerificationCode(cleanEmail, code);
         }
 
-        res.status(200).json({ 
-            message: 'Код подтверждения отправлен', 
+        res.status(200).json({
+            message: 'Код подтверждения отправлен',
             email: cleanEmail || null,
             phone: cleanPhone || null,
             redirect: 'verify' // Флаг для фронтенда, чтобы переключить экран
         });
 
     } catch (error) {
-        console.error('Register Error:', error);
-        res.status(500).json({ error: 'Ошибка регистрации' });
+        logger.error('Register Error', { error: error.message, stack: error.stack });
+        res.status(500).json({ code: 'REGISTRATION_ERROR', error: 'Ошибка регистрации' });
     }
 };
 
@@ -167,8 +169,8 @@ exports.verifyEmail = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Verify Error:', error);
-        res.status(500).json({ error: 'Ошибка подтверждения' });
+        logger.error('Verify Error', { error: error.message, stack: error.stack });
+        res.status(500).json({ code: 'VERIFICATION_ERROR', error: 'Ошибка подтверждения' });
     }
 };
 
@@ -188,7 +190,7 @@ exports.login = async (req, res) => {
         if (cleanPhone) orFilters.push({ phone: cleanPhone });
 
         const user = await prisma.user.findFirst({ where: { OR: orFilters } });
-        
+
         // Задержка от брутфорса
         if (!user) {
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -204,9 +206,9 @@ exports.login = async (req, res) => {
 
         // ПРОВЕРКИ СТАТУСА
         if (!user.is_verified) {
-             // Если пароль верный, но аккаунт не подтвержден
-            return res.status(403).json({ 
-                error: 'Аккаунт не подтвержден', 
+            // Если пароль верный, но аккаунт не подтвержден
+            return res.status(403).json({
+                error: 'Аккаунт не подтвержден',
                 needVerification: true,
                 email: user.email,
                 phone: user.phone
@@ -231,7 +233,7 @@ exports.login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login Error:', error);
-        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+        logger.error('Login Error', { error: error.message, stack: error.stack });
+        res.status(500).json({ code: 'LOGIN_ERROR', error: 'Внутренняя ошибка сервера' });
     }
 };

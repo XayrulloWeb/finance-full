@@ -42,6 +42,11 @@ model User {
   goals         Goal[]
   notifications Notification[]
   admin_audit_logs AdminAuditLog[]
+  sent_debt_requests     DebtRequest[]  @relation("SentDebtRequests")
+  received_debt_requests DebtRequest[]  @relation("ReceivedDebtRequests")
+  linked_debts_as_a      LinkedDebt[]   @relation("LinkedDebtsAsUserA")
+  linked_debts_as_b      LinkedDebt[]   @relation("LinkedDebtsAsUserB")
+  debt_activities        DebtActivity[]
 
   @@index([status])
   @@map("users")
@@ -203,9 +208,16 @@ model Debt {
   removed_at      DateTime? @db.Timestamptz
   notes           String?
   created_at      DateTime  @default(now()) @db.Timestamptz
+  
+  // Social Debt Fields
+  linked_debt_id    String?     @db.Uuid
+  is_linked         Boolean     @default(false)
+  partner_user_id   String?     @db.Uuid
 
   user            User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   counterparty    Counterparty? @relation(fields: [counterparty_id], references: [id])
+  linked_debt_a   LinkedDebt?   @relation("LinkedDebtA")
+  linked_debt_b   LinkedDebt?   @relation("LinkedDebtB")
 
   @@index([user_id])
   @@index([user_id, is_removed])
@@ -285,4 +297,92 @@ model AdminAuditLog {
   @@index([admin_id, created_at(sort: Desc)])
   @@index([target_type, target_id])
   @@map("admin_audit_logs")
+}
+
+// ==========================================================
+// 5. СОЦИАЛЬНЫЕ ДОЛГИ
+// ==========================================================
+
+model DebtRequest {
+  id              String    @id @default(uuid()) @db.Uuid
+  sender_id       String    @db.Uuid
+  receiver_email  String
+  receiver_id     String?   @db.Uuid
+  
+  amount          Decimal   @db.Decimal(12, 2)
+  debt_type       String    // 'i_owe', 'owes_me' (from sender's perspective)
+  name            String
+  notes           String?
+  due_date        DateTime? @db.Date
+  
+  status          String    @default("pending") // 'pending', 'accepted', 'rejected', 'cancelled', 'expired'
+  rejection_reason String?
+  
+  linked_debt_id  String?   @db.Uuid
+  
+  created_at      DateTime  @default(now()) @db.Timestamptz
+  responded_at    DateTime? @db.Timestamptz
+  expires_at      DateTime? @db.Timestamptz
+  
+  // Visibility flags for soft delete
+  sender_is_deleted   Boolean @default(false)
+  receiver_is_deleted Boolean @default(false)
+  
+  sender          User       @relation("SentDebtRequests", fields: [sender_id], references: [id], onDelete: Cascade)
+  receiver        User?      @relation("ReceivedDebtRequests", fields: [receiver_id], references: [id], onDelete: Cascade)
+  linked_debt     LinkedDebt? @relation(fields: [linked_debt_id], references: [id])
+  
+  @@index([receiver_email, status])
+  @@index([sender_id, status])
+  @@index([receiver_id, status])
+  @@index([status, expires_at])
+  @@map("debt_requests")
+}
+
+model LinkedDebt {
+  id                String    @id @default(uuid()) @db.Uuid
+  
+  user_a_id         String    @db.Uuid
+  debt_a_id         String    @db.Uuid @unique
+  
+  user_b_id         String    @db.Uuid
+  debt_b_id         String    @db.Uuid @unique
+  
+  original_amount   Decimal   @db.Decimal(12, 2)
+  current_amount    Decimal   @db.Decimal(12, 2)
+  is_settled        Boolean   @default(false)
+  
+  created_at        DateTime  @default(now()) @db.Timestamptz
+  settled_at        DateTime? @db.Timestamptz
+  
+  user_a            User      @relation("LinkedDebtsAsUserA", fields: [user_a_id], references: [id], onDelete: Cascade)
+  user_b            User      @relation("LinkedDebtsAsUserB", fields: [user_b_id], references: [id], onDelete: Cascade)
+  debt_a            Debt      @relation("LinkedDebtA", fields: [debt_a_id], references: [id], onDelete: Cascade)
+  debt_b            Debt      @relation("LinkedDebtB", fields: [debt_b_id], references: [id], onDelete: Cascade)
+  
+  activities        DebtActivity[]
+  requests          DebtRequest[]
+  
+  @@index([user_a_id, is_settled])
+  @@index([user_b_id, is_settled])
+  @@map("linked_debts")
+}
+
+model DebtActivity {
+  id              String     @id @default(uuid()) @db.Uuid
+  linked_debt_id  String     @db.Uuid
+  user_id         String     @db.Uuid
+  
+  action_type     String     // 'created', 'payment', 'settled', 'edited', 'note_added'
+  amount          Decimal?   @db.Decimal(12, 2)
+  note            String?
+  metadata        Json?
+  
+  created_at      DateTime   @default(now()) @db.Timestamptz
+  
+  linked_debt     LinkedDebt @relation(fields: [linked_debt_id], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([linked_debt_id, created_at(sort: Desc)])
+  @@map("debt_activities")
 }

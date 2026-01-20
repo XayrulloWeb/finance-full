@@ -22,6 +22,7 @@ export default function TransactionModal({
 
     // Modes: Category or Counterparty
     const [txMode, setTxMode] = useState('category');
+    const amountInputRef = React.useRef(null);
 
     const [form, setForm] = useState({
         type: 'expense',
@@ -70,6 +71,15 @@ export default function TransactionModal({
             }
         }
     }, [isOpen, editingTransaction, initialType, initialCategoryName, initialAccountId, store.accounts, store.categories]);
+
+    useEffect(() => {
+        if (isOpen && !editingTransaction) {
+            const timer = setTimeout(() => {
+                amountInputRef.current?.focus();
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen, editingTransaction]);
 
     const categories = store.categories.filter(c => c.type === form.type);
 
@@ -140,16 +150,16 @@ export default function TransactionModal({
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <div className="space-y-6">
                 {/* Type Switcher */}
-                <div className="flex bg-zinc-100 p-1 rounded-xl border border-zinc-200">
+                <div className="flex bg-zinc-100 dark:bg-white/5 p-1 rounded-xl border border-zinc-200 dark:border-white/5">
                     <button
                         onClick={() => setForm(p => ({ ...p, type: 'expense', category_id: '', counterparty_id: '' }))}
-                        className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${form.type === 'expense' ? 'bg-white shadow-sm text-error ring-1 ring-black/5' : 'text-zinc-500 hover:text-zinc-700'}`}
+                        className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${form.type === 'expense' ? 'bg-white dark:bg-rose-500/20 shadow-sm text-rose-600 dark:text-rose-400 ring-1 ring-black/5 dark:ring-white/10' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'}`}
                     >
                         {t('modals.transaction.type_expense')}
                     </button>
                     <button
                         onClick={() => setForm(p => ({ ...p, type: 'income', category_id: '', counterparty_id: '' }))}
-                        className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${form.type === 'income' ? 'bg-white shadow-sm text-success ring-1 ring-black/5' : 'text-zinc-500 hover:text-zinc-700'}`}
+                        className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${form.type === 'income' ? 'bg-white dark:bg-emerald-500/20 shadow-sm text-emerald-600 dark:text-emerald-400 ring-1 ring-black/5 dark:ring-white/10' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'}`}
                     >
                         {t('modals.transaction.type_income')}
                     </button>
@@ -158,40 +168,41 @@ export default function TransactionModal({
                 {/* Amount Input */}
                 <div className="relative">
                     <input
+                        ref={amountInputRef}
                         type="number"
-                        autoFocus={!editingTransaction}
-                        className={`w-full text-4xl sm:text-5xl font-black p-4 bg-transparent border-b-2 outline-none text-center tabular-nums transition-colors ${form.type === 'expense' ? 'text-error border-error/30 focus:border-error' : 'text-success border-success/30 focus:border-success'}`}
+                        inputMode="decimal"
+                        className={`w-full text-4xl sm:text-5xl font-black p-4 bg-transparent border-b-2 outline-none text-center tabular-nums transition-colors ${form.type === 'expense' ? 'text-rose-500 border-rose-500/30 focus:border-rose-500' : 'text-emerald-500 border-emerald-500/30 focus:border-emerald-500'}`}
                         value={form.amount}
                         onChange={e => setForm({ ...form, amount: e.target.value })}
                         placeholder="0"
                     />
-                    <div className="text-center text-xs font-bold text-zinc-400 mt-2 uppercase tracking-wide">{t('modals.transaction.amount_label')} ({store.accounts.find(a => a.id === form.account_id)?.currency})</div>
+                    <div className="text-center text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-2 uppercase tracking-wide">{t('modals.transaction.amount_label')} ({store.accounts.find(a => a.id === form.account_id)?.currency})</div>
                 </div>
 
                 <div className="space-y-4">
                     {/* Account Select */}
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.transaction.account_label')}</label>
-                        <select className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors cursor-pointer" value={form.account_id} onChange={e => setForm({ ...form, account_id: e.target.value })}>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('modals.transaction.account_label')}</label>
+                        <select className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors cursor-pointer" value={form.account_id} onChange={e => setForm({ ...form, account_id: e.target.value })}>
                             {store.accounts.map(a => <option key={a.id} value={a.id}>{a.name} ({formatCurrency(store.getAccountBalance(a.id))} {a.currency})</option>)}
                         </select>
                     </div>
 
                     {/* Category / Counterparty Select */}
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-2 block uppercase">{form.type === 'expense' ? t('modals.transaction.category_counterparty_label_expense') : t('modals.transaction.category_counterparty_label_income')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-2 block uppercase">{form.type === 'expense' ? t('modals.transaction.category_counterparty_label_expense') : t('modals.transaction.category_counterparty_label_income')}</label>
                         <div className="flex gap-2 mb-2">
-                            <button onClick={() => setTxMode('category')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${txMode === 'category' ? 'bg-indigo-100 text-indigo-700' : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'}`}>{t('modals.transaction.category')}</button>
-                            <button onClick={() => setTxMode('counterparty')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${txMode === 'counterparty' ? 'bg-indigo-100 text-indigo-700' : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'}`}>{t('modals.transaction.counterparty')}</button>
+                            <button onClick={() => setTxMode('category')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${txMode === 'category' ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400' : 'bg-zinc-50 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10'}`}>{t('modals.transaction.category')}</button>
+                            <button onClick={() => setTxMode('counterparty')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${txMode === 'counterparty' ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400' : 'bg-zinc-50 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10'}`}>{t('modals.transaction.counterparty')}</button>
                         </div>
 
                         {txMode === 'category' ? (
-                            <select className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors cursor-pointer" value={form.category_id || ''} onChange={e => setForm({ ...form, category_id: e.target.value })}>
+                            <select className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors cursor-pointer" value={form.category_id || ''} onChange={e => setForm({ ...form, category_id: e.target.value })}>
                                 <option value="">{t('modals.transaction.select_category')}</option>
                                 {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                             </select>
                         ) : (
-                            <select className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors cursor-pointer" value={form.counterparty_id || ''} onChange={e => setForm({ ...form, counterparty_id: e.target.value })}>
+                            <select className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors cursor-pointer" value={form.counterparty_id || ''} onChange={e => setForm({ ...form, counterparty_id: e.target.value })}>
                                 <option value="">{t('modals.transaction.select_counterparty')}</option>
                                 {store.counterparties.map(c => <option key={c.id} value={c.id}>{c.icon || '👤'} {c.name}</option>)}
                             </select>
@@ -201,22 +212,22 @@ export default function TransactionModal({
                     {/* Date and Comment */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1">
-                            <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.transaction.date_label')}</label>
-                            <input type="date" className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('modals.transaction.date_label')}</label>
+                            <input type="date" className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
                         </div>
                         <div className="sm:col-span-2">
-                            <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.transaction.comment_label')}</label>
-                            <input type="text" placeholder="..." className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors" value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} />
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('modals.transaction.comment_label')}</label>
+                            <input type="text" placeholder="..." className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white rounded-xl font-bold outline-none focus:border-indigo-500 transition-colors" value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} />
                         </div>
                     </div>
 
                     {/* AI Suggestion */}
-                    <div className="rounded-2xl border border-zinc-200 bg-white/70 p-4 space-y-3">
+                    <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                            <div className="text-xs font-bold uppercase text-zinc-500">{t('modals.transaction.ai_title')}</div>
+                            <div className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400">{t('modals.transaction.ai_title')}</div>
                             <button
                                 onClick={handleAiSuggest}
-                                className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20 px-3 py-1.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors"
                                 disabled={aiLoading}
                             >
                                 {aiLoading ? t('common.loading') : t('modals.transaction.ai_suggest')}
@@ -224,7 +235,7 @@ export default function TransactionModal({
                         </div>
                         {aiSuggestion?.category && (
                             <button
-                                className="w-full text-left text-sm font-bold text-zinc-700 bg-zinc-50 px-3 py-2 rounded-xl hover:bg-zinc-100"
+                                className="w-full text-left text-sm font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-white/5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10"
                                 onClick={() => {
                                     setTxMode('category');
                                     setForm(prev => ({ ...prev, category_id: aiSuggestion.category.id || prev.category_id }));
@@ -235,7 +246,7 @@ export default function TransactionModal({
                         )}
                         {aiSuggestion?.counterparty && (
                             <button
-                                className="w-full text-left text-sm font-bold text-zinc-700 bg-zinc-50 px-3 py-2 rounded-xl hover:bg-zinc-100"
+                                className="w-full text-left text-sm font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-white/5 px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10"
                                 onClick={() => {
                                     setTxMode('counterparty');
                                     setForm(prev => ({ ...prev, counterparty_id: aiSuggestion.counterparty.id || prev.counterparty_id }));
@@ -246,15 +257,15 @@ export default function TransactionModal({
                         )}
                         {Array.isArray(aiSuggestion?.new_category_suggestions) && aiSuggestion.new_category_suggestions.length > 0 && (
                             <div className="space-y-2">
-                                <div className="text-[11px] font-bold uppercase text-zinc-400">{t('modals.transaction.ai_new_categories')}</div>
+                                <div className="text-[11px] font-bold uppercase text-zinc-400 dark:text-zinc-500">{t('modals.transaction.ai_new_categories')}</div>
                                 {aiSuggestion.new_category_suggestions.map((item, idx) => (
-                                    <div key={`${item.name}-${idx}`} className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-zinc-100">
-                                        <div className="flex items-center gap-2 text-sm font-bold text-zinc-700">
+                                    <div key={`${item.name}-${idx}`} className="flex items-center justify-between bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-zinc-100 dark:border-white/5">
+                                        <div className="flex items-center gap-2 text-sm font-bold text-zinc-700 dark:text-zinc-200">
                                             <span className="text-lg">{item.icon || '🧾'}</span>
                                             {item.name}
                                         </div>
                                         <button
-                                            className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg hover:bg-emerald-100"
+                                            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/20 px-2.5 py-1 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/30"
                                             onClick={() => store.createCategory(item.name, item.type || form.type, item.icon || '🧾', item.color)}
                                         >
                                             {t('modals.transaction.ai_create')}
@@ -264,12 +275,12 @@ export default function TransactionModal({
                             </div>
                         )}
                         {aiSuggestion?.reason && (
-                            <div className="text-xs text-zinc-500">{aiSuggestion.reason}</div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">{aiSuggestion.reason}</div>
                         )}
                     </div>
                 </div>
 
-                <Button onClick={handleSubmit} loading={loading} variant={form.type === 'expense' ? 'danger' : 'success'} className="w-full py-4 text-lg shadow-xl shadow-gray-200">
+                <Button onClick={handleSubmit} loading={loading} variant={form.type === 'expense' ? 'danger' : 'success'} className="w-full py-4 text-lg shadow-xl shadow-gray-200 dark:shadow-none">
                     {editingTransaction ? t('modals.transaction.save_btn') : (form.type === 'expense' ? t('modals.transaction.expense_btn') : t('modals.transaction.income_btn'))}
                 </Button>
             </div>

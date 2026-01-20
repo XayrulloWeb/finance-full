@@ -7,6 +7,8 @@ import Layout from './components/Layout';
 // Pages
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Lazy Pages
 const Analytics = lazy(() => import('./pages/Analytics'));
@@ -49,30 +51,37 @@ export default function App() {
     return (
         <ToastProvider>
             <BrowserRouter>
-                {!user ? (
-                    <Auth />
-                ) : (
-                    <Suspense fallback={<FullScreenLoader />}>
-                        <Routes>
-                            <Route path="/" element={<Layout />}>
-                                <Route index element={<Dashboard />} />
-                                <Route path="analytics" element={<Analytics />} />
-                                <Route path="debts" element={<Debts />} />
-                                <Route path="counterparties" element={<Counterparties />} />
-                                <Route path="recurring" element={<Recurring />} />
-                                <Route path="history" element={<History />} />
-                                <Route path="settings" element={<Settings />} />
-                                <Route path="goals" element={<Goals />} />
-                                <Route path="insights" element={<Insights />} />
-                                <Route path="calendar" element={<Calendar />} />
-                                <Route path="notifications" element={<Notifications />} />
-                                <Route path="admin" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" replace />} />
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                            </Route>
-                        </Routes>
-                    </Suspense>
-                )}
+                <Routes>
+                    {/* Public Routes */}
+                    {!user && (
+                        <>
+                            <Route path="/forgot-password" element={<ForgotPassword onBackToLogin={() => window.location.href = '/'} />} />
+                            <Route path="/reset-password" element={<ResetPassword />} />
+                            <Route path="*" element={<Auth />} />
+                        </>
+                    )}
+
+                    {/* Authenticated Routes */}
+                    {user && (
+                        <Route path="/" element={<Layout />}>
+                            <Route index element={<Dashboard />} />
+                            <Route path="analytics" element={<Suspense fallback={<FullScreenLoader />}><Analytics /></Suspense>} />
+                            <Route path="debts" element={<Suspense fallback={<FullScreenLoader />}><Debts /></Suspense>} />
+                            <Route path="counterparties" element={<Suspense fallback={<FullScreenLoader />}><Counterparties /></Suspense>} />
+                            <Route path="recurring" element={<Suspense fallback={<FullScreenLoader />}><Recurring /></Suspense>} />
+                            <Route path="history" element={<Suspense fallback={<FullScreenLoader />}><History /></Suspense>} />
+                            <Route path="settings" element={<Suspense fallback={<FullScreenLoader />}><Settings /></Suspense>} />
+                            <Route path="goals" element={<Suspense fallback={<FullScreenLoader />}><Goals /></Suspense>} />
+                            <Route path="insights" element={<Suspense fallback={<FullScreenLoader />}><Insights /></Suspense>} />
+                            <Route path="calendar" element={<Suspense fallback={<FullScreenLoader />}><Calendar /></Suspense>} />
+                            <Route path="notifications" element={<Suspense fallback={<FullScreenLoader />}><Notifications /></Suspense>} />
+                            <Route path="admin" element={user?.role === 'admin' ? <Suspense fallback={<FullScreenLoader />}><AdminDashboard /></Suspense> : <Navigate to="/" replace />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Route>
+                    )}
+                </Routes>
             </BrowserRouter>
         </ToastProvider>
     );
 }
+

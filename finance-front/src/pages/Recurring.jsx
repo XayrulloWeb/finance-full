@@ -5,6 +5,7 @@ import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { toast } from '../components/ui/Toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 
 
@@ -13,6 +14,23 @@ export default function Recurring() {
     const store = useFinanceStore();
     const recurring = store.recurring;
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // Confirm Dialog State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const openConfirm = (title, message, onConfirm, type = 'danger') => {
+        setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+    };
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
 
     // Form
     const [form, setForm] = useState({ amount: '', type: 'expense', day_of_month: '1', category_id: '', account_id: '', comment: '' });
@@ -31,9 +49,14 @@ export default function Recurring() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm(t('recurring.confirm_delete'))) return;
-        await store.deleteRecurring(id);
-        toast.success(t('recurring.toast_deleted'));
+        openConfirm(
+            t('recurring.confirm_delete_title', 'Delete Subscription?'),
+            t('recurring.confirm_delete'),
+            async () => {
+                await store.deleteRecurring(id);
+                toast.success(t('recurring.toast_deleted'));
+            }
+        );
     };
 
     const runningTotal = recurring.reduce((sum, r) => sum + r.amount, 0);
@@ -62,7 +85,7 @@ export default function Recurring() {
             <GlassCard className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-none relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="relative z-10 flex flex-col md:flex-row text-center justify-between items-center gap-6">
                     <div>
                         <div className="flex items-center gap-2 opacity-80 mb-2 font-bold text-xs uppercase tracking-wider">
                             <Clock size={16} strokeWidth={2.5} /> {t('recurring.monthly_load')}
@@ -92,44 +115,44 @@ export default function Recurring() {
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
                                             {cat?.icon || '📅'}
                                         </div>
                                         <div>
-                                            <div className="font-bold text-zinc-900 truncate max-w-[120px]">
+                                            <div className="font-bold text-zinc-900 dark:text-white truncate max-w-[120px]">
                                                 {item.comment || cat?.name}
                                             </div>
-                                            <div className="text-xs text-zinc-500 font-bold flex items-center gap-1">
+                                            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-bold flex items-center gap-1">
                                                 <Calendar size={10} strokeWidth={2.5} /> {t('recurring.on_day', { day: item.day_of_month })}
                                             </div>
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-zinc-400 hover:text-rose-500 transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-500 transition-colors"
                                     >
                                         <Trash2 size={16} strokeWidth={2.5} />
                                     </button>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-zinc-500 bg-zinc-50 p-2 rounded-lg mb-4 border border-zinc-100">
+                                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-white/5 p-2 rounded-lg mb-4 border border-zinc-100 dark:border-white/5">
                                     <span className="font-bold">{t('recurring.card_label')}</span> {acc?.name}
                                 </div>
                             </div>
 
-                            <div className={`text-2xl font-black ${isExpense ? 'text-zinc-900' : 'text-emerald-600'}`}>
+                            <div className={`text-2xl font-black ${isExpense ? 'text-zinc-900 dark:text-white' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                 {isExpense ? '-' : '+'}{formatCurrency(item.amount)}
-                                <span className="text-xs text-zinc-400 ml-1 font-bold">UZS</span>
+                                <span className="text-xs text-zinc-400 dark:text-zinc-500 ml-1 font-bold">UZS</span>
                             </div>
                         </GlassCard>
                     );
                 })}
 
                 {recurring.length === 0 && (
-                    <div className="col-span-full py-12 text-center text-zinc-400 border-2 border-dashed border-zinc-200 rounded-2xl bg-white/50
+                    <div className="col-span-full py-12 text-center text-zinc-400 dark:text-zinc-500 border-2 border-dashed border-zinc-200 dark:border-white/10 rounded-2xl bg-white/50 dark:bg-white/5
             flex flex-col items-center justify-center gap-4">
                         <Zap size={48} className="mx-auto mb-4 opacity-20" strokeWidth={1} />
-                        <h3 className="font-bold text-lg text-zinc-500">{t('recurring.empty_title')}</h3>
-                        <p className="text-sm text-zinc-400">{t('recurring.empty_desc')}</p>
+                        <h3 className="font-bold text-lg text-zinc-500 dark:text-zinc-300">{t('recurring.empty_title')}</h3>
+                        <p className="text-sm text-zinc-400 dark:text-zinc-500">{t('recurring.empty_desc')}</p>
                         <Button variant="outline" size="sm" className="mt-4" onClick={() => setIsCreateModalOpen(true)}>{t('recurring.add_btn')}</Button>
                     </div>
                 )}
@@ -141,7 +164,7 @@ export default function Recurring() {
                     <input
                         type="number"
                         placeholder={t('recurring.amount_placeholder')}
-                        className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-2xl text-center text-zinc-900 focus:border-indigo-500 shadow-sm"
+                        className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-2xl text-center text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                         value={form.amount}
                         onChange={e => setForm({ ...form, amount: e.target.value })}
                         autoFocus
@@ -149,9 +172,9 @@ export default function Recurring() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">{t('recurring.category_label')}</label>
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">{t('recurring.category_label')}</label>
                             <select
-                                className="w-full p-3 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm"
+                                className="w-full p-3 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm transition-colors"
                                 value={form.category_id}
                                 onChange={e => setForm({ ...form, category_id: e.target.value })}
                             >
@@ -160,9 +183,9 @@ export default function Recurring() {
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">{t('recurring.account_label')}</label>
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">{t('recurring.account_label')}</label>
                             <select
-                                className="w-full p-3 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm"
+                                className="w-full p-3 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm transition-colors"
                                 value={form.account_id}
                                 onChange={e => setForm({ ...form, account_id: e.target.value })}
                             >
@@ -174,11 +197,11 @@ export default function Recurring() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">{t('recurring.day_label')}</label>
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">{t('recurring.day_label')}</label>
                             <div className="relative">
                                 <input
                                     type="number" min="1" max="31"
-                                    className="w-full p-3 bg-white border border-zinc-200 rounded-xl font-bold outline-none pl-10 text-zinc-900 focus:border-indigo-500 shadow-sm"
+                                    className="w-full p-3 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none pl-10 text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                                     value={form.day_of_month}
                                     onChange={e => setForm({ ...form, day_of_month: e.target.value })}
                                 />
@@ -186,9 +209,9 @@ export default function Recurring() {
                             </div>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">{t('recurring.type_label')}</label>
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">{t('recurring.type_label')}</label>
                             <select
-                                className="w-full p-3 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm"
+                                className="w-full p-3 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm transition-colors"
                                 value={form.type}
                                 onChange={e => setForm({ ...form, type: e.target.value })}
                             >
@@ -199,10 +222,10 @@ export default function Recurring() {
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">{t('recurring.name_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">{t('recurring.name_label')}</label>
                         <input
                             placeholder={t('recurring.name_placeholder')}
-                            className="w-full p-3 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 focus:border-indigo-500 shadow-sm"
+                            className="w-full p-3 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                             value={form.comment}
                             onChange={e => setForm({ ...form, comment: e.target.value })}
                         />
@@ -211,6 +234,18 @@ export default function Recurring() {
                     <Button onClick={handleCreate} className="w-full py-4 text-lg mt-2 bg-indigo-600 hover:bg-indigo-700 text-white">{t('recurring.activate_btn')}</Button>
                 </div>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirm}
+                onConfirm={() => {
+                    confirmConfig.onConfirm();
+                    closeConfirm();
+                }}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 }

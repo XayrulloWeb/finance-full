@@ -9,6 +9,7 @@ import { toast } from '../components/ui/Toast';
 import DebtRequestModal from '../components/modals/DebtRequestModal';
 import DebtRequestCard from '../components/DebtRequestCard';
 import DebtDetailsModal from '../components/modals/DebtDetailsModal';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +32,23 @@ export default function Debts() {
     const [viewHistoryDebt, setViewHistoryDebt] = useState(null);
     const [payAmount, setPayAmount] = useState('');
     const [payAccountId, setPayAccountId] = useState(accounts?.[0]?.id || '');
+
+    // Confirm Dialog State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const openConfirm = (title, message, onConfirm, type = 'danger') => {
+        setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+    };
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
 
     const [activeTab, setActiveTab] = useState('active'); // 'active' | 'history'
 
@@ -62,10 +80,14 @@ export default function Debts() {
     };
 
     const handleDelete = async (id) => {
-        if (confirm(t('debts.confirm_delete'))) {
-            await deleteDebt(id);
-            toast.success(t('debts.toast_deleted'));
-        }
+        openConfirm(
+            t('debts.confirm_delete_title', 'Delete Debt?'),
+            t('debts.confirm_delete'),
+            async () => {
+                await deleteDebt(id);
+                toast.success(t('debts.toast_deleted'));
+            }
+        );
     };
 
     // Helper for currency formatting based on current language
@@ -100,11 +122,11 @@ export default function Debts() {
         <div className="space-y-6 sm:space-y-8 animate-fade-in custom-scrollbar pb-28 sm:pb-32">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-zinc-900 flex items-center gap-3">
-                        <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl"><Wallet strokeWidth={2.5} /></span>
+                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+                        <span className="p-2 bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 rounded-xl"><Wallet strokeWidth={2.5} /></span>
                         {t('debts.title')}
                     </h1>
-                    <p className="text-zinc-500 mt-1">{t('debts.subtitle')}</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">{t('debts.subtitle')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button onClick={() => setIsDebtRequestModalOpen(true)} icon={Users} variant="secondary">
@@ -126,20 +148,20 @@ export default function Debts() {
 
             {/* SUMMARY CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <GlassCard className="bg-gradient-to-br from-rose-50 to-white border-rose-100 shadow-sm">
-                    <div className="flex items-center gap-2 text-rose-500 font-bold mb-2">
+                <GlassCard className="bg-gradient-to-br from-rose-50 to-white dark:from-rose-500/10 dark:to-transparent border-rose-100 dark:border-rose-500/20 shadow-sm">
+                    <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400 font-bold mb-2">
                         <ArrowDownLeft size={20} strokeWidth={2.5} /> {t('debts.i_owe')}
                     </div>
-                    <div className="text-3xl font-black text-zinc-900">
+                    <div className="text-3xl font-black text-zinc-900 dark:text-white">
                         {formatCurrency(totalIOwe)} <span className="text-lg opacity-50 font-medium">UZS</span>
                     </div>
                 </GlassCard>
 
-                <GlassCard className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100 shadow-sm">
-                    <div className="flex items-center gap-2 text-emerald-600 font-bold mb-2">
+                <GlassCard className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-transparent border-emerald-100 dark:border-emerald-500/20 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold mb-2">
                         <ArrowUpRight size={20} strokeWidth={2.5} /> {t('debts.owes_me')}
                     </div>
-                    <div className="text-3xl font-black text-zinc-900">
+                    <div className="text-3xl font-black text-zinc-900 dark:text-white">
                         {formatCurrency(totalOwesMe)} <span className="text-lg opacity-50 font-medium">UZS</span>
                     </div>
                 </GlassCard>
@@ -148,11 +170,11 @@ export default function Debts() {
             {/* PENDING DEBT REQUESTS */}
             {(incomingDebtRequests?.length > 0 || outgoingDebtRequests?.length > 0) && (
                 <>
-                    <h2 className="text-xl font-bold flex items-center gap-2 text-zinc-900">
-                        <Users size={20} className="text-indigo-600" strokeWidth={2.5} />
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-zinc-900 dark:text-white">
+                        <Users size={20} className="text-violet-600 dark:text-violet-400" strokeWidth={2.5} />
                         {t('debt_requests.title', 'Debt Requests')}
                         {incomingDebtRequests?.length > 0 && (
-                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 text-xs font-bold rounded-full">
+                            <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 text-xs font-bold rounded-full">
                                 {incomingDebtRequests.length}
                             </span>
                         )}
@@ -192,13 +214,13 @@ export default function Debts() {
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={() => setActiveTab('active')}
-                    className={`px-4 py-2 rounded-xl font-bold transition-all ${activeTab === 'active' ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                    className={`px-4 py-2 rounded-xl font-bold transition-all ${activeTab === 'active' ? 'bg-zinc-900 dark:bg-violet-600 text-white shadow-lg shadow-zinc-900/20 dark:shadow-violet-600/30' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10'}`}
                 >
                     {t('debts.tab_active')}
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
-                    className={`px-4 py-2 rounded-xl font-bold transition-all ${activeTab === 'history' ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                    className={`px-4 py-2 rounded-xl font-bold transition-all ${activeTab === 'history' ? 'bg-zinc-900 dark:bg-violet-600 text-white shadow-lg shadow-zinc-900/20 dark:shadow-violet-600/30' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10'}`}
                 >
                     {t('debts.tab_history')}
                 </button>
@@ -323,15 +345,15 @@ export default function Debts() {
             {/* CREATE MODAL */}
             <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={t('debts.create_title')}>
                 <div className="space-y-4">
-                    <div className="flex p-1 bg-zinc-100 rounded-xl border border-zinc-200">
+                    <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-white/5">
                         <button
-                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'i_owe' ? 'bg-white shadow text-rose-500' : 'text-zinc-500'} `}
+                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'i_owe' ? 'bg-white dark:bg-slate-700 shadow text-rose-500 dark:text-rose-400' : 'text-zinc-500 dark:text-zinc-400'} `}
                             onClick={() => setForm({ ...form, type: 'i_owe' })}
                         >
                             {t('debts.type_i_owe')}
                         </button>
                         <button
-                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'owes_me' ? 'bg-white shadow text-emerald-600' : 'text-zinc-500'} `}
+                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${form.type === 'owes_me' ? 'bg-white dark:bg-slate-700 shadow text-emerald-600 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-400'} `}
                             onClick={() => setForm({ ...form, type: 'owes_me' })}
                         >
                             {t('debts.type_owes_me')}
@@ -339,9 +361,9 @@ export default function Debts() {
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('debts.name_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('debts.name_label')}</label>
                         <input
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 focus:border-indigo-500 shadow-sm"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                             placeholder={t('debts.name_placeholder')}
                             value={form.name}
                             onChange={e => setForm({ ...form, name: e.target.value })}
@@ -349,10 +371,10 @@ export default function Debts() {
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('debts.amount_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('debts.amount_label')}</label>
                         <input
                             type="number"
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-xl text-zinc-900 focus:border-indigo-500 shadow-sm"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-xl text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                             placeholder="0"
                             value={form.amount}
                             onChange={e => setForm({ ...form, amount: e.target.value })}
@@ -360,10 +382,10 @@ export default function Debts() {
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('debts.date_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('debts.date_label')}</label>
                         <input
                             type="date"
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 focus:border-indigo-500 shadow-sm"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                             value={form.due_date}
                             onChange={e => setForm({ ...form, due_date: e.target.value })}
                         />
@@ -377,28 +399,28 @@ export default function Debts() {
             <Modal isOpen={!!payModalDebt} onClose={() => setPayModalDebt(null)} title={t('debts.pay_title')}>
                 <div className="space-y-4">
                     <div className="text-center mb-4">
-                        <div className="text-zinc-500 text-sm">{t('debts.remaining_debt')}</div>
-                        <div className="text-2xl font-black text-zinc-900">
+                        <div className="text-zinc-500 dark:text-zinc-400 text-sm">{t('debts.remaining_debt')}</div>
+                        <div className="text-2xl font-black text-zinc-900 dark:text-white">
                             {payModalDebt && formatCurrency(payModalDebt.amount - payModalDebt.paid_amount)} UZS
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('debts.pay_amount_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('debts.pay_amount_label')}</label>
                         <input
                             type="number"
                             autoFocus
                             placeholder={t('debts.pay_amount_placeholder')}
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-center text-xl text-zinc-900 focus:border-emerald-500 shadow-sm"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-center text-xl text-zinc-900 dark:text-white focus:border-emerald-500 shadow-sm transition-colors"
                             value={payAmount}
                             onChange={e => setPayAmount(e.target.value)}
                         />
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('debts.account_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('debts.account_label')}</label>
                         <select
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm transition-colors"
                             onChange={(e) => setPayAccountId(e.target.value)}
                         >
                             {useFinanceStore(s => s.accounts).map(acc => (
@@ -424,6 +446,18 @@ export default function Debts() {
             <DebtRequestModal
                 isOpen={isDebtRequestModalOpen}
                 onClose={() => setIsDebtRequestModalOpen(false)}
+            />
+
+            <ConfirmDialog
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirm}
+                onConfirm={() => {
+                    confirmConfig.onConfirm();
+                    closeConfirm();
+                }}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
             />
         </div >
     );

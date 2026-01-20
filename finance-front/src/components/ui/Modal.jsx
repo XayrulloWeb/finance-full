@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -18,10 +19,12 @@ export default function Modal({
         xl: 'max-w-4xl',
     };
 
-    return (
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pt-safe pb-safe">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 pt-safe pb-safe">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -66,6 +69,7 @@ export default function Modal({
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

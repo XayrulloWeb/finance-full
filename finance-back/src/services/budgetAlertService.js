@@ -78,12 +78,23 @@ async function checkBudgetLimits(userId, categoryId, amount, date = new Date()) 
             }
 
             if (alertType) {
-                // Check if we already notified about this specific status RECENTLY (e.g. today? or just if it wasn't already triggered?)
-                // Simple approach: Check if active notification exists for this month/budget to avoid spam.
-                // Or allows spam for every transaction exceeding limit?
-                // Better: Create notification. User can read/dismiss it.
+                // Check for duplicates in the last 24 hours
+                const duplicate = await prisma.notification.findFirst({
+                    where: {
+                        user_id: userId,
+                        type: alertType,
+                        related_id: budget.id,
+                        related_type: 'budget',
+                        created_at: {
+                            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24 hours
+                        }
+                    }
+                });
 
-                // Let's create a notification. filtering spam is complex logic, maybe just check if last notification for this budget was recent.
+                if (duplicate) {
+                    logger.info(`Budget alert skipped (duplicate): ${alertType} for user ${userId}, budget ${budget.id}`);
+                    continue;
+                }
 
                 // Get category name for message
                 const category = await prisma.category.findUnique({
@@ -96,7 +107,7 @@ async function checkBudgetLimits(userId, categoryId, amount, date = new Date()) 
                         user_id: userId,
                         type: alertType,
                         title: category?.name || 'Budget Alert',
-                        message: `${percentage.toFixed(0)}% of limit used`, // Simplified message, can be localized on front
+                        message: `${percentage.toFixed(0)}% of limit used`,
                         data: {
                             budget_id: budget.id,
                             category_id: categoryId,
@@ -104,6 +115,8 @@ async function checkBudgetLimits(userId, categoryId, amount, date = new Date()) 
                             current: currentTotal,
                             percentage: percentage
                         },
+                        related_id: budget.id,
+                        related_type: 'budget',
                         is_read: false
                     }
                 });

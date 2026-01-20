@@ -15,12 +15,12 @@ export default function Button({
     ...props
 }) {
     const variants = {
-        primary: 'bg-teal-700 hover:bg-teal-800 text-white shadow-lg shadow-teal-700/30 hover:shadow-teal-700/40 hover:-translate-y-0.5',
+        primary: 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/30 hover:shadow-violet-600/40 hover:-translate-y-0.5',
         secondary: 'bg-white dark:bg-slate-800 hover:bg-zinc-50 dark:hover:bg-slate-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-zinc-300',
         danger: 'bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shadow-sm',
         success: 'bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm',
         ghost: 'bg-transparent hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100',
-        outline: 'border-2 border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20',
+        outline: 'border-2 border-violet-600 text-violet-600 dark:border-violet-400 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20',
     };
 
     const sizes = {

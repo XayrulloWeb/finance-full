@@ -23,6 +23,9 @@ model User {
   is_verified   Boolean   @default(false)
   verification_code String?
   code_expires_at   DateTime?
+  // Password Reset Fields
+  reset_token       String?
+  reset_expires_at  DateTime? @db.Timestamptz
   // ------------------
   password_hash String
   role          String    @default("user")

@@ -237,3 +237,171 @@ exports.login = async (req, res) => {
         res.status(500).json({ code: 'LOGIN_ERROR', error: 'Внутренняя ошибка сервера' });
     }
 };
+
+// --- PASSWORD RESET: REQUEST ---
+exports.requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const cleanEmail = email ? email.trim() : '';
+
+        if (!cleanEmail) {
+            return res.status(400).json({ error: 'Email required' });
+        }
+
+        // Ищем юзера
+        const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
+
+        // Даже если юзера нет, возвращаем success (против enumeration)
+        if (!user) {
+            logger.warn('Password reset requested for non-existent email', { email: cleanEmail });
+            return res.json({ message: 'Если email существует, на него отправлена инструкция' });
+        }
+
+        // Проверяем, что аккаунт подтвержден
+        if (!user.is_verified) {
+            return res.status(400).json({ error: 'Аккаунт не подтвержден. Сначала завершите регистрацию.' });
+        }
+
+        // Генерируем криптографически стойкий токен (32 байта = 64 hex символа)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 час
+
+        // Сохраняем токен в БД
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                reset_token: resetToken,
+                reset_expires_at: resetExpiry
+            }
+        });
+
+        // Отправляем email со ссылкой
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+        await emailService.sendPasswordResetEmail(user.email, resetUrl);
+
+        logger.info('Password reset requested', { userId: user.id, email: user.email });
+
+        res.json({ message: 'Если email существует, на него отправлена инструкция' });
+
+    } catch (error) {
+        logger.error('Password Reset Request Error', { error: error.message, stack: error.stack });
+        res.status(500).json({ code: 'RESET_REQUEST_ERROR', error: 'Ошибка запроса сброса пароля' });
+    }
+};
+
+// --- PASSWORD RESET: CONFIRM ---
+exports.confirmPasswordReset = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Token and new password required' });
+        }
+
+        // Ищем юзера по токену
+        const user = await prisma.user.findFirst({
+            where: {
+                reset_token: token,
+                reset_expires_at: { gte: new Date() } // Токен еще действителен
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Неверный или истекший токен' });
+        }
+
+        // Хешируем новый пароль
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(newPassword, salt);
+
+        // Обновляем пароль и стираем токен
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password_hash: hash,
+                reset_token: null,
+                reset_expires_at: null
+            }
+        });
+
+        logger.info('Password reset successful', { userId: user.id });
+
+        res.json({ message: 'Пароль успешно изменен. Теперь можете войти.' });
+
+    } catch (error) {
+        logger.error('Password Reset Confirm Error', { error: error.message, stack: error.stack });
+        res.status(500).json({ code: 'RESET_CONFIRM_ERROR', error: 'Ошибка смены пароля' });
+    }
+};
+
+// --- RESEND VERIFICATION CODE ---
+exports.resendVerificationCode = async (req, res) => {
+    try {
+        const { email, phone } = req.body;
+        const cleanEmail = email ? email.trim() : '';
+        const cleanPhone = phone ? phone.trim() : '';
+
+        if (!cleanEmail && !cleanPhone) {
+            return res.status(400).json({ error: 'Email or phone required' });
+        }
+
+        const orFilters = [];
+        if (cleanEmail) orFilters.push({ email: cleanEmail });
+        if (cleanPhone) orFilters.push({ phone: cleanPhone });
+
+        const user = await prisma.user.findFirst({ where: { OR: orFilters } });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+
+        if (user.is_verified) {
+            return res.status(400).json({ error: 'Аккаунт уже подтвержден' });
+        }
+
+        // Проверка: не отправляли ли код недавно (защита от спама)
+        if (user.code_expires_at) {
+            const timeSinceLastCode = Date.now() - (user.code_expires_at.getTime() - 10 * 60 * 1000);
+            const oneMinute = 60 * 1000;
+
+            if (timeSinceLastCode < oneMinute) {
+                const waitSeconds = Math.ceil((oneMinute - timeSinceLastCode) / 1000);
+                return res.status(429).json({
+                    error: `Подождите ${waitSeconds} секунд перед повторной отправкой`,
+                    waitSeconds
+                });
+            }
+        }
+
+        // Генерируем новый код
+        const code = crypto.randomInt(100000, 1000000).toString();
+        const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+        // Обновляем код в БД
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                verification_code: code,
+                code_expires_at: codeExpiry
+            }
+        });
+
+        // Отправляем новый код
+        const usePhone = Boolean(cleanPhone && !cleanEmail);
+        if (usePhone) {
+            await smsService.sendVerificationCode(cleanPhone, code);
+        } else {
+            await emailService.sendVerificationCode(cleanEmail, code);
+        }
+
+        logger.info('Verification code resent', { userId: user.id });
+
+        res.json({ message: 'Новый код отправлен' });
+
+    } catch (error) {
+        logger.error('Resend Verification Code Error', { error: error.message, stack: error.stack });
+        res.status(500).json({ code: 'RESEND_ERROR', error: 'Ошибка повторной отправки кода' });
+    }
+};
+
+

@@ -10,10 +10,10 @@ const QuickActionButton = ({ icon: IconComponent, label, category, onClick }) =>
         onClick={() => onClick('expense', category)}
         className="flex flex-col items-center gap-2 min-w-[80px] group"
     >
-        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center border border-zinc-200 hover:border-indigo-600 hover:bg-indigo-50 transition-all shadow-sm group-active:scale-95">
-            <IconComponent size={24} className="text-zinc-700 group-hover:text-indigo-600" strokeWidth={2} />
+        <div className="w-14 h-14 bg-white dark:bg-white/5 rounded-2xl flex items-center justify-center border border-zinc-200 dark:border-white/10 hover:border-indigo-600 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 transition-all shadow-sm group-active:scale-95">
+            <IconComponent size={24} className="text-zinc-700 dark:text-zinc-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" strokeWidth={2} />
         </div>
-        <span className="text-xs font-bold text-zinc-500 group-hover:text-indigo-600 transition-colors text-center max-w-[80px] truncate">
+        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-center max-w-[80px] truncate">
             {label}
         </span>
     </button>
@@ -34,7 +34,7 @@ export default function QuickActions({ onAction }) {
     return (
         <section>
             <div className="flex justify-between items-center mb-4 px-1">
-                <h2 className="text-lg font-bold text-zinc-900">{t('dashboard.quick_actions.title')}</h2>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t('dashboard.quick_actions.title')}</h2>
             </div>
             <div className="flex overflow-x-auto gap-3 pb-4 px-1 custom-scrollbar">
                 {/* Render Defaults first */}
@@ -57,10 +57,10 @@ export default function QuickActions({ onAction }) {
                         onClick={() => onAction('expense', cat.name)}
                         className="flex flex-col items-center gap-2 min-w-[80px] group"
                     >
-                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center border-2 border-zinc-200 hover:border-primary hover:bg-indigo-50 hover:shadow-lg hover:shadow-indigo-500/20 transition-all shadow-sm group-active:scale-95">
+                        <div className="w-14 h-14 bg-white dark:bg-white/5 rounded-2xl flex items-center justify-center border-2 border-zinc-200 dark:border-white/10 hover:border-primary hover:bg-indigo-50 dark:hover:bg-primary/10 hover:shadow-lg hover:shadow-indigo-500/20 transition-all shadow-sm group-active:scale-95">
                             <span className="text-2xl">{cat.icon}</span>
                         </div>
-                        <span className="text-xs font-bold text-zinc-600 group-hover:text-primary transition-colors text-center max-w-[80px] truncate">
+                        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 group-hover:text-primary transition-colors text-center max-w-[80px] truncate">
                             {cat.name}
                         </span>
                     </motion.button>

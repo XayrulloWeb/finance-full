@@ -57,18 +57,18 @@ export default function MonthlyStats() {
                 >
                     <GlassCard className={`group transition-all hover:border-${stat.color === 'indigo' ? 'indigo-500' : stat.color}/50`}>
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{stat.label}</span>
-                            <div className={`p-1.5 rounded-lg ${stat.color === 'indigo' ? 'bg-indigo-500/10' : stat.color === 'success' ? 'bg-success/10' : 'bg-error/10'}`}>
-                                <stat.icon size={14} className={stat.color === 'indigo' ? 'text-indigo-600' : stat.color === 'success' ? 'text-success' : 'text-error'} strokeWidth={2.5} />
+                            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{stat.label}</span>
+                            <div className={`p-1.5 rounded-lg ${stat.color === 'indigo' ? 'bg-indigo-500/10' : stat.color === 'success' ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                                <stat.icon size={14} className={stat.color === 'indigo' ? 'text-indigo-600 dark:text-indigo-400' : stat.color === 'success' ? 'text-emerald-500' : 'text-rose-500'} strokeWidth={2.5} />
                             </div>
                         </div>
-                        <div className={`text-2xl font-black tabular-nums ${stat.color === 'indigo' ? 'text-indigo-600' : stat.color === 'success' ? 'text-success' : stat.color === 'error' ? 'text-error' : 'text-zinc-900'}`}>
+                        <div className={`text-2xl font-black tabular-nums ${stat.color === 'indigo' ? 'text-indigo-600 dark:text-indigo-400' : stat.color === 'success' ? 'text-emerald-500' : stat.color === 'error' ? 'text-rose-500' : 'text-zinc-900 dark:text-white'}`}>
                             {isPrivacy ? (stat.isPercent ? '••' : '•••••') : (
                                 stat.isPercent ? stat.value : `${stat.prefix || ''}${formatNumber(stat.value)}`
                             )}
                         </div>
-                        {!stat.isPercent && <div className="text-[10px] font-bold text-zinc-400 mt-1">{t('dashboard.stats.this_month')}</div>}
-                        {stat.isPercent && <div className="text-[10px] font-bold text-zinc-400 mt-1">{t('dashboard.stats.avg_completion')}</div>}
+                        {!stat.isPercent && <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-1">{t('dashboard.stats.this_month')}</div>}
+                        {stat.isPercent && <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-1">{t('dashboard.stats.avg_completion')}</div>}
                     </GlassCard>
                 </motion.div>
             ))}

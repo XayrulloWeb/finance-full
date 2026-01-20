@@ -67,7 +67,7 @@ export default function Layout() {
   const mobileLinkClass = ({ isActive }) =>
     `relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300
     ${isActive
-      ? 'text-white bg-teal-700 shadow-lg shadow-teal-700/40 scale-110'
+      ? 'text-white bg-violet-600 shadow-lg shadow-violet-600/40 scale-110'
       : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
     } `;
 
@@ -76,12 +76,12 @@ export default function Layout() {
       {/* Desktop Sidebar */}
       <aside className="sidebar hidden lg:flex flex-col w-80 h-full z-30 transition-colors duration-300">
         <div className="flex items-center gap-3 px-8 py-8">
-          <div className="p-3 bg-gradient-to-tr from-teal-700 to-amber-500 rounded-2xl shadow-xl shadow-teal-700/30">
+          <div className="p-3 bg-gradient-to-tr from-violet-600 to-fuchsia-500 rounded-2xl shadow-xl shadow-violet-600/30">
             <Wallet className="text-white" size={28} strokeWidth={2} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-zinc-900 leading-none tracking-tight">Finance</h1>
-            <span className="text-[10px] font-bold text-teal-700 tracking-[0.2em] uppercase">Empire</span>
+            <h1 className="text-2xl font-black text-zinc-900 dark:text-white leading-none tracking-tight">Finance</h1>
+            <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 tracking-[0.2em] uppercase">Empire</span>
           </div>
         </div>
 
@@ -90,8 +90,8 @@ export default function Layout() {
             <NavLink key={item.to} to={item.to} className={({ isActive }) =>
               `flex items-center gap-4 px-6 py-4 mx-2 rounded-2xl transition-all duration-300 font-bold group
                ${isActive
-                ? 'bg-surface shadow-xl shadow-teal-700/10 text-teal-700 translate-x-2'
-                : 'text-zinc-500 hover:text-zinc-900 hover:bg-surface/50 hover:pl-8'
+                ? 'bg-surface shadow-xl shadow-violet-600/10 text-violet-600 dark:text-violet-400 translate-x-2'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-surface/50 hover:pl-8'
               } `
             }>
               <item.icon size={22} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
@@ -116,29 +116,29 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 h-full overflow-y-auto scroll-smooth custom-scrollbar relative">
-        <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 pb-28 sm:pb-32">
+        <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 pb-40 sm:pb-32">
           <Outlet />
         </div>
       </main>
 
       {/* --- MASTERPIECE MOBILE NAVIGATION (Floating Island) --- */}
       <div className="lg:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-[350px] px-4 pb-safe">
-        <nav className="relative flex items-center justify-between px-6 py-4 rounded-[2.5rem] bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-2xl shadow-zinc-900/20 ring-1 ring-black/5 dark:ring-white/5">
+        <nav className="relative flex items-center justify-between px-6 py-4 rounded-[2.5rem] bg-white/90 dark:bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/50 dark:border-violet-500/10 shadow-2xl shadow-zinc-900/20 dark:shadow-violet-900/20 ring-1 ring-black/5 dark:ring-violet-500/5">
 
-          <NavLink to="/" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+          <NavLink to="/" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
             {({ isActive }) => (
               <>
                 <LayoutDashboard size={24} strokeWidth={2.5} />
-                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-600 dark:bg-teal-400 rounded-full" />}
+                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-violet-600 dark:bg-violet-400 rounded-full" />}
               </>
             )}
           </NavLink>
 
-          <NavLink to="/analytics" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+          <NavLink to="/analytics" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
             {({ isActive }) => (
               <>
                 <ChartPie size={24} strokeWidth={2.5} />
-                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-600 dark:bg-teal-400 rounded-full" />}
+                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-violet-600 dark:bg-violet-400 rounded-full" />}
               </>
             )}
           </NavLink>
@@ -172,22 +172,22 @@ export default function Layout() {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-              className={`flex items-center justify-center w-16 h-16 rounded-[1.2rem] shadow-xl shadow-teal-600/30 text-white transition-all duration-300 border-[4px] border-white dark:border-zinc-900 ${isActionMenuOpen ? 'bg-zinc-800 rotate-45' : 'bg-teal-600 rotate-0'}`}
+              className={`flex items-center justify-center w-16 h-16 rounded-[1.2rem] shadow-xl shadow-violet-600/30 text-white transition-all duration-300 border-[4px] border-white dark:border-[#0a0a0f] ${isActionMenuOpen ? 'bg-zinc-800 rotate-45' : 'bg-gradient-to-br from-violet-500 to-violet-700 rotate-0'}`}
             >
               <Plus size={32} strokeWidth={3} />
             </motion.button>
           </div>
 
-          <NavLink to="/history" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+          <NavLink to="/history" className={({ isActive }) => `relative z-10 p-2 transition-colors ${isActive ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
             {({ isActive }) => (
               <>
                 <History size={24} strokeWidth={2.5} />
-                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-600 dark:bg-teal-400 rounded-full" />}
+                {isActive && <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-violet-600 dark:bg-violet-400 rounded-full" />}
               </>
             )}
           </NavLink>
 
-          <button onClick={() => setIsMobileMenuOpen(true)} className={`relative z-10 p-2 transition-colors ${isMobileMenuOpen ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
+          <button onClick={() => setIsMobileMenuOpen(true)} className={`relative z-10 p-2 transition-colors ${isMobileMenuOpen ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500'}`}>
             <Menu size={24} strokeWidth={2.5} />
           </button>
         </nav>
@@ -207,17 +207,17 @@ export default function Layout() {
             {/* Header */}
             <div className="flex justify-between items-center p-6 mt-safe">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-700 text-white shadow-lg shadow-teal-700/30">
+                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-600/30">
                   <span className="font-black text-lg">{user?.email?.[0].toUpperCase()}</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-zinc-900 leading-none">Меню</h2>
-                  <p className="text-xs text-zinc-500 font-bold mt-1">{user?.email}</p>
+                  <h2 className="text-xl font-black text-zinc-900 dark:text-white leading-none">Меню</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 font-bold mt-1">{user?.email}</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-12 h-12 rounded-full bg-white shadow-lg shadow-zinc-200/50 flex items-center justify-center text-zinc-900 border border-zinc-100 active:scale-90 transition-transform"
+                className="w-12 h-12 rounded-full bg-white dark:bg-white/10 shadow-lg shadow-zinc-200/50 dark:shadow-none flex items-center justify-center text-zinc-900 dark:text-white border border-zinc-100 dark:border-white/5 active:scale-90 transition-transform"
               >
                 <X size={24} strokeWidth={2.5} />
               </button>
@@ -234,8 +234,8 @@ export default function Layout() {
                     className={({ isActive }) =>
                       `flex flex-col items-center justify-center gap-3 p-6 rounded-3xl transition-all duration-300 border h-32
                        ${isActive
-                        ? 'bg-teal-700 text-white border-teal-600 shadow-xl shadow-teal-700/30'
-                        : 'bg-white text-zinc-500 border-zinc-100 shadow-sm hover:shadow-md'
+                        ? 'bg-gradient-to-br from-violet-600 to-violet-700 text-white border-violet-500 shadow-xl shadow-violet-600/30'
+                        : 'bg-white dark:bg-white/5 text-zinc-500 dark:text-zinc-300 border-zinc-100 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none'
                       }`
                     }
                   >
@@ -247,7 +247,7 @@ export default function Layout() {
 
               <button
                 onClick={handleLogout}
-                className="w-full mt-6 mb-8 flex items-center justify-center gap-3 p-5 rounded-3xl bg-rose-50 text-rose-600 font-black border border-rose-100 shadow-lg shadow-rose-500/10 active:scale-95 transition-all"
+                className="w-full mt-6 mb-8 flex items-center justify-center gap-3 p-5 rounded-3xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-black border border-violet-100 dark:border-violet-500/20 shadow-lg shadow-violet-500/10 active:scale-95 transition-all"
               >
                 <LogOut size={24} strokeWidth={2.5} />
                 <span>Выйти из аккаунта</span>

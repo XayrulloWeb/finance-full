@@ -26,7 +26,30 @@ const createAuthRateLimit = () => {
     });
 };
 
+// Stricter rate limiter specifically for login endpoint (brute-force protection)
+const loginRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Only 5 login attempts
+    message: { error: 'Слишком много попыток входа. Попробуйте через 15 минут' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: false,
+    handler: (req, res) => {
+        const logger = require('../lib/logger');
+        logger.warn('Login rate limit exceeded', {
+            ip: req.ip,
+            email: req.body?.email,
+            phone: req.body?.phone
+        });
+        res.status(429).json({
+            code: 'TOO_MANY_REQUESTS',
+            error: 'Слишком много попыток входа. Попробуйте через 15 минут'
+        });
+    }
+});
+
 module.exports = {
     createUserRateLimit,
-    createAuthRateLimit
+    createAuthRateLimit,
+    loginRateLimit
 };

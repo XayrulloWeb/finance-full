@@ -44,6 +44,7 @@ export default function History() {
     const [showFilters, setShowFilters] = useState(false);
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [editingTransaction, setEditingTransaction] = useState(null);
+    const searchInputRef = useRef(null);
 
     const handleEdit = (tx) => setEditingTransaction(tx);
 
@@ -114,8 +115,8 @@ export default function History() {
         <div className="max-w-4xl mx-auto pb-28 sm:pb-32 animate-fade-in custom-scrollbar h-[calc(100vh-100px)] flex flex-col">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 px-1">
                 <div>
-                    <h1 className="text-3xl font-black text-zinc-900">{t('history.title')}</h1>
-                    <p className="text-zinc-500">{t('history.subtitle')}</p>
+                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white">{t('history.title')}</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400">{t('history.subtitle')}</p>
                 </div>
                 <Button
                     variant={showFilters ? 'primary' : 'outline'}
@@ -128,9 +129,25 @@ export default function History() {
             </div>
 
             <div className="mb-8 relative group px-1">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none"><Search className="text-zinc-400 group-focus-within:text-indigo-600 transition-colors" size={22} strokeWidth={2.5} /></div>
-                <input className="w-full pl-12 pr-12 py-3 sm:py-4 bg-white border-2 border-zinc-200 rounded-2xl text-zinc-900 placeholder-zinc-400 focus:border-indigo-500 transition-all text-base sm:text-lg font-medium shadow-sm outline-none" placeholder={t('history.search_placeholder')} value={filters.search} onChange={e => updateFilter('search', e.target.value)} />
-                {filters.search && <button onClick={() => updateFilter('search', '')} className="absolute inset-y-0 right-4 flex items-center text-slate-500 hover:text-error transition-colors"><X size={20} strokeWidth={2.5} /></button>}
+                <div className="absolute inset-y-0 right-[20px] pl-5 flex items-center pointer-events-none"><Search className="text-zinc-400 dark:text-zinc-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" size={22} strokeWidth={2.5} /></div>
+                <input
+                    ref={searchInputRef}
+                    className="w-full pl-12 pr-12 py-3 sm:py-4 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-white/5 rounded-2xl text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-indigo-500 dark:focus:border-indigo-500 transition-all text-base sm:text-lg font-medium shadow-sm outline-none"
+                    placeholder={t('history.search_placeholder')}
+                    value={filters.search}
+                    onChange={e => updateFilter('search', e.target.value)}
+                />
+                {filters.search && (
+                    <button
+                        onClick={() => {
+                            updateFilter('search', '');
+                            searchInputRef.current?.focus();
+                        }}
+                        className="absolute inset-y-0 right-4 flex items-center text-slate-500 hover:text-error transition-colors"
+                    >
+                        <X size={20} strokeWidth={2.5} />
+                    </button>
+                )}
             </div>
 
             <AnimatePresence>
@@ -200,9 +217,9 @@ export default function History() {
                                 <div key={virtualItem.key} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: `${virtualItem.size}px`, transform: `translateY(${virtualItem.start}px)` }}>
                                     {item.type === 'header' ? (
                                         <div className="flex items-center px-1 py-3 z-10">
-                                            <div className="bg-[#f3f4f6]/95 backdrop-blur-sm flex items-center gap-2 border-b border-zinc-200 w-full pb-2">
-                                                <Calendar size={16} className="text-indigo-600" strokeWidth={2.5} />
-                                                <span className="font-bold text-zinc-500 uppercase text-sm">{format(parseISO(item.date), 'd MMMM yyyy, EEEE', { locale: currentLocale })}</span>
+                                            <div className="bg-[#f3f4f6]/95 dark:bg-[#0f172a]/95 backdrop-blur-sm flex items-center gap-2 border-b border-zinc-200 dark:border-white/5 w-full pb-2">
+                                                <Calendar size={16} className="text-indigo-600 dark:text-indigo-400" strokeWidth={2.5} />
+                                                <span className="font-bold text-zinc-500 dark:text-zinc-400 uppercase text-sm">{format(parseISO(item.date), 'd MMMM yyyy, EEEE', { locale: currentLocale })}</span>
                                             </div>
                                         </div>
                                     ) : (

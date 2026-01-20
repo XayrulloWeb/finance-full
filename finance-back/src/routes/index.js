@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const { createUserRateLimit, createAuthRateLimit } = require('../middleware/rateLimitMiddleware');
+const { createUserRateLimit, createAuthRateLimit, loginRateLimit } = require('../middleware/rateLimitMiddleware');
 const validate = require('../middleware/validateMiddleware');
 const {
     registerSchema,
@@ -41,8 +41,11 @@ const authLimiter = createAuthRateLimit();
 
 // --- AUTH ---
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
-router.post('/auth/login', authLimiter, validate(loginSchema), authController.login);
+router.post('/auth/login', loginRateLimit, validate(loginSchema), authController.login);
 router.post('/auth/verify', authLimiter, validate(verifySchema), authController.verifyEmail);
+router.post('/auth/request-password-reset', authLimiter, authController.requestPasswordReset);
+router.post('/auth/confirm-password-reset', authLimiter, authController.confirmPasswordReset);
+router.post('/auth/resend-verification', authLimiter, authController.resendVerificationCode);
 
 // --- DATA READ ---
 router.get('/dashboard', authMiddleware, userLimiter, dataController.getDashboard);
@@ -141,6 +144,10 @@ const pushController = require('../controllers/pushController');
 router.get('/push/key', authMiddleware, userLimiter, pushController.getPublicKey);
 router.post('/push/subscribe', authMiddleware, userLimiter, pushController.subscribe);
 router.post('/push/test', authMiddleware, userLimiter, pushController.sendTest);
+
+// --- HEALTH CHECK ---
+const healthController = require('../controllers/healthController');
+router.get('/health', healthController.checkHealth);
 
 // --- TEST ROUTES (Development Only) ---
 if (process.env.NODE_ENV !== 'production') {

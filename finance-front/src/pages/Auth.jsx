@@ -1,21 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { toast } from '../components/ui/Toast';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, Lock, Eye, EyeOff, ChevronRight, Wallet, KeyRound, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function Auth() {
     const { t } = useTranslation();
-    
+
     // Данные формы
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [code, setCode] = useState(''); // <-- Для кода подтверждения
     const [phone, setPhone] = useState(''); // <-- Если захочешь добавить телефон позже
     const [authMethod, setAuthMethod] = useState('email'); // email | phone
-    
+    const navigate = useNavigate();
+    const [resendCountdown, setResendCountdown] = useState(0);
     // Состояния UI
     const [showPassword, setShowPassword] = useState(false);
     const [isReg, setIsReg] = useState(false); // false = Login, true = Register
@@ -43,6 +46,12 @@ export default function Auth() {
         await checkUser();
         toast.success(t('auth.welcome_back'));
     };
+    useEffect(() => {
+        if (resendCountdown > 0) {
+            const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [resendCountdown]);
 
     const handleAuth = async (e) => {
         e.preventDefault();
@@ -69,7 +78,7 @@ export default function Auth() {
                     });
                     await finalizeLogin(response.data.token);
                 }
-            } 
+            }
             // --- ЛОГИКА ВХОДА ---
             else {
                 const response = await api.post('/auth/login', {
@@ -82,8 +91,13 @@ export default function Auth() {
 
         } catch (err) {
             console.error("Auth error:", err);
+            console.log("Server response:", err.response?.data);
             const data = err.response?.data;
-            const msg = data?.error || "Ошибка соединения";
+            let msg = data?.error || data?.message || "Ошибка соединения";
+
+            if (data?.errors && Array.isArray(data.errors)) {
+                msg = data.errors.map(e => e.message).join('. ');
+            }
 
             // Спец. обработка: Если при логине сервер сказал, что нужна верификация
             if (!isReg && data?.needVerification) {
@@ -91,8 +105,8 @@ export default function Auth() {
                 if (data.phone) setPhone(data.phone);
                 if (data.email) setEmail(data.email);
                 setAuthMethod(data.phone ? 'phone' : 'email');
-                setIsReg(true); // ������������� �� ���� ����
-                setStep(2);     // ����� �� ��� ����
+                setIsReg(true);
+                setStep(2);  
             } else {
                 toast.error(msg);
             }
@@ -106,6 +120,17 @@ export default function Auth() {
         setIsReg(!isReg);
         setStep(1);
         setCode('');
+    };
+
+    const handleResendCode = async () => {
+        try {
+            const data = authMethod === 'email' ? { email: email.trim() } : { phone: phone.trim() };
+            await api.post('/auth/resend-verification', data);
+            toast.success(t('auth.code_resent'));
+            setResendCountdown(60);
+        } catch (err) {
+            toast.error(err?.response?.data?.error || 'Ошибка');
+        }
     };
 
     return (
@@ -129,7 +154,7 @@ export default function Auth() {
                     </div>
                     <h1 className="text-center font-black text-2xl text-slate-900">Finance Empire</h1>
                     <p className="mt-2 text-slate-600 font-medium text-center text-sm">
-                        {step === 2 
+                        {step === 2
                             ? t('auth.code_sent_to', { target: contactValue })
                             : (isReg ? t('auth.create_capital') : t('auth.assets_control'))}
                     </p>
@@ -138,7 +163,7 @@ export default function Auth() {
                 {/* Форма с анимацией смены контента */}
                 <form onSubmit={handleAuth} className="space-y-6 mt-4 relative">
                     <AnimatePresence mode="wait">
-                        
+
                         {/* ШАГ 1: Email и Пароль */}
                         {step === 1 && (
                             <motion.div
@@ -167,26 +192,26 @@ export default function Auth() {
                                         </button>
                                     </div>
                                     <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                                        {isPhone ? t('auth.phone_label') : t('auth.email_label')}
-                                    </label>
-                                    <div className="relative group">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-                                            {isPhone
-                                                ? <Phone className="w-5 h-5 text-slate-500 group-focus-within:text-teal-700 transition-colors" />
-                                                : <Mail className="w-5 h-5 text-slate-500 group-focus-within:text-teal-700 transition-colors" />
-                                            }
+                                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                                            {isPhone ? t('auth.phone_label') : t('auth.email_label')}
+                                        </label>
+                                        <div className="relative group">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                                                {isPhone
+                                                    ? <Phone className="w-5 h-5 text-slate-500 group-focus-within:text-teal-700 transition-colors" />
+                                                    : <Mail className="w-5 h-5 text-slate-500 group-focus-within:text-teal-700 transition-colors" />
+                                                }
+                                            </div>
+                                            <input
+                                                type={isPhone ? "tel" : "email"}
+                                                placeholder={isPhone ? t('auth.phone_placeholder') : t('auth.email_placeholder')}
+                                                value={isPhone ? phone : email}
+                                                onChange={e => handleContactChange(e.target.value)}
+                                                required
+                                                className="!pl-12 w-full py-4 bg-white border border-slate-200/80 rounded-xl outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                                            />
                                         </div>
-                                        <input
-                                            type={isPhone ? "tel" : "email"}
-                                            placeholder={isPhone ? t('auth.phone_placeholder') : t('auth.email_placeholder')}
-                                            value={isPhone ? phone : email}
-                                            onChange={e => handleContactChange(e.target.value)}
-                                            required
-                                            className="!pl-12 w-full py-4 bg-white border border-slate-200/80 rounded-xl outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
-                                        />
                                     </div>
-                                </div>
                                 </div>
 
                                 {/* Поле Пароль */}
@@ -206,6 +231,20 @@ export default function Auth() {
                                             required
                                             className="!pl-12 !pr-12 w-full py-4 bg-white border border-slate-200/80 rounded-xl outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
                                         />
+
+
+                                        {!isReg && (
+                                            <div className="text-right ">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate('/forgot-password')}
+                                                    className="text-sm text-teal-600 hover:text-teal-700 font-medium hover:underline transition"
+                                                >
+                                                    {t('auth.forgot_password')}
+                                                </button>
+                                            </div>
+                                        )}
+
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
@@ -215,6 +254,7 @@ export default function Auth() {
                                         </button>
                                     </div>
                                 </div>
+                                {isReg && <PasswordStrengthIndicator password={password} />}
                             </motion.div>
                         )}
 
@@ -246,8 +286,21 @@ export default function Auth() {
                                         />
                                     </div>
                                     <div className="text-center mt-2">
-                                        <button 
-                                            type="button" 
+                                        <div className="text-center mb-4">
+                                            <button
+                                                type="button"
+                                                onClick={handleResendCode}
+                                                disabled={resendCountdown > 0}
+                                                className="text-sm text-teal-600 hover:text-teal-700 hover:underline disabled:text-gray-400 disabled:no-underline transition"
+                                            >
+                                                {resendCountdown > 0
+                                                    ? t('auth.resend_wait', { seconds: resendCountdown })
+                                                    : t('auth.resend_code')
+                                                }
+                                            </button>
+                                        </div>
+                                        <button
+                                            type="button"
                                             onClick={() => setStep(1)}
                                             className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 mx-auto"
                                         >

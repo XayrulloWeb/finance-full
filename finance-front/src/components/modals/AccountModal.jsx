@@ -4,8 +4,8 @@ import Button from '../ui/Button';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { useTranslation } from 'react-i18next';
 
-const ICONS = ['💳', '💰', '🏦', '📱', '💵', '💎', '🐷', 'safe'];
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#18181b'];
+const ICONS = ['💳', '💰', '🏦', '📱', '💵', '💎', '🐷', '🔐'];
+const COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899', '#06b6d4', '#18181b'];
 
 export default function AccountModal({ isOpen, onClose }) {
     const { t } = useTranslation();
@@ -56,15 +56,15 @@ export default function AccountModal({ isOpen, onClose }) {
             <div className="space-y-6">
                 {/* Icons */}
                 <div>
-                    <label className="text-xs font-bold text-zinc-500 mb-2 block uppercase">{t('modals.account.icon_label')}</label>
+                    <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-2 block uppercase">{t('modals.account.icon_label')}</label>
                     <div className="flex flex-wrap gap-2">
                         {ICONS.map(emoji => (
                             <button
                                 key={emoji}
                                 onClick={() => setForm({ ...form, icon: emoji })}
                                 className={`w-10 h-10 text-xl rounded-xl border-2 transition-all flex items-center justify-center ${form.icon === emoji
-                                        ? 'border-indigo-600 bg-indigo-50 scale-110'
-                                        : 'border-zinc-200 hover:border-indigo-300'
+                                    ? 'border-violet-600 bg-violet-50 dark:bg-violet-500/20 scale-110'
+                                    : 'border-zinc-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/50 bg-white dark:bg-white/5'
                                     }`}
                             >
                                 {emoji}
@@ -75,11 +75,11 @@ export default function AccountModal({ isOpen, onClose }) {
 
                 {/* Name */}
                 <div>
-                    <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.account.name_label')}</label>
+                    <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('modals.account.name_label')}</label>
                     <input
                         type="text"
                         placeholder={t('modals.account.name_placeholder')}
-                        className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm focus:border-indigo-500 transition-colors"
+                        className="w-full p-4 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm focus:border-violet-500 transition-colors"
                         value={form.name}
                         onChange={e => setForm({ ...form, name: e.target.value })}
                         autoFocus
@@ -89,9 +89,9 @@ export default function AccountModal({ isOpen, onClose }) {
                 {/* Currency & Initial Balance */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.account.currency_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('modals.account.currency_label')}</label>
                         <select
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm cursor-pointer"
+                            className="w-full p-4 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm cursor-pointer"
                             value={form.currency}
                             onChange={e => setForm({ ...form, currency: e.target.value })}
                         >
@@ -103,11 +103,11 @@ export default function AccountModal({ isOpen, onClose }) {
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('modals.account.initial_balance')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('modals.account.initial_balance')}</label>
                         <input
                             type="number"
                             placeholder="0"
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm focus:border-indigo-500 transition-colors"
+                            className="w-full p-4 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm focus:border-violet-500 transition-colors"
                             value={form.initialBalance}
                             onChange={e => setForm({ ...form, initialBalance: e.target.value })}
                         />
@@ -116,13 +116,13 @@ export default function AccountModal({ isOpen, onClose }) {
 
                 {/* Color */}
                 <div>
-                    <label className="text-xs font-bold text-zinc-500 mb-2 block uppercase">{t('modals.account.color_label')}</label>
+                    <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-2 block uppercase">{t('modals.account.color_label')}</label>
                     <div className="flex flex-wrap gap-2">
                         {COLORS.map(color => (
                             <button
                                 key={color}
                                 onClick={() => setForm({ ...form, color })}
-                                className={`w-8 h-8 rounded-full border-2 transition-all ${form.color === color ? 'border-zinc-900 scale-110 ring-2 ring-zinc-200' : 'border-transparent'
+                                className={`w-8 h-8 rounded-full border-2 transition-all ${form.color === color ? 'border-zinc-900 dark:border-white scale-110 ring-2 ring-zinc-200 dark:ring-violet-500/30' : 'border-transparent'
                                     }`}
                                 style={{ backgroundColor: color }}
                             />

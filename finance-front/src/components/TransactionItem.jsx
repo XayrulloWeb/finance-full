@@ -7,6 +7,8 @@ import GlassCard from './ui/GlassCard';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { toast } from './ui/Toast';
 import { useTranslation } from 'react-i18next';
+import ConfirmDialog from './ui/ConfirmDialog';
+import { useState } from 'react';
 
 const locales = { ru, uz, en: enUS };
 
@@ -22,6 +24,23 @@ export default function TransactionItem({ transaction, category, account, counte
     const formattedDate = format(parseISO(transaction.date), 'HH:mm', { locale: currentLocale });
     const formattedAmount = new Intl.NumberFormat(i18n.language === 'uz' ? 'uz-UZ' : i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(Math.abs(transaction.amount));
 
+    // Confirm Dialog State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const openConfirm = (title, message, onConfirm, type = 'danger') => {
+        setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+    };
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
+
     // Swipe Logic
     const x = useMotionValue(0);
     const deleteOpacity = useTransform(x, [-100, -50], [1, 0]);
@@ -34,15 +53,20 @@ export default function TransactionItem({ transaction, category, account, counte
 
         if (offset < -100 || (offset < -50 && velocity < -500)) {
             // Delete
-            if (window.confirm(t('transaction_item.confirm_delete'))) {
-                await deleteTransaction(transaction.id);
-            } else {
-                x.set(0); // Return
-            }
+            openConfirm(
+                t('transaction_item.confirm_delete_title', 'Delete Transaction?'),
+                t('transaction_item.confirm_delete'),
+                async () => {
+                    await deleteTransaction(transaction.id);
+                }
+            );
+            x.set(0); // Always return position, if user confirms it disappears via list update
         } else if (offset > 100 || (offset > 50 && velocity > 500)) {
             // Edit
             if (onEdit) onEdit(transaction);
             x.set(0); // Return after triggering edit
+        } else {
+            x.set(0);
         }
     };
 
@@ -112,6 +136,18 @@ export default function TransactionItem({ transaction, category, account, counte
                     </div>
                 </div>
             </GlassCard>
+
+            <ConfirmDialog
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirm}
+                onConfirm={() => {
+                    confirmConfig.onConfirm();
+                    closeConfirm();
+                }}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 }

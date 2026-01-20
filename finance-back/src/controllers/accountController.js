@@ -41,13 +41,20 @@ exports.createAccount = async (req, res) => {
 exports.deleteAccount = async (req, res) => {
     try {
         const account = await prisma.account.findFirst({
-            where: { id: req.params.id, user_id: req.user.id }
+            where: { id: req.params.id, user_id: req.user.id, is_hidden: false }
         });
         if (!account) {
             return res.status(404).json({ error: 'Account not found' });
         }
 
-        await prisma.account.delete({ where: { id: account.id } });
+        // Soft delete: скрываем счет и ставим дату удаления
+        await prisma.account.update({
+            where: { id: account.id },
+            data: {
+                is_hidden: true,
+                deleted_at: new Date()
+            }
+        });
 
         // Invalidate cache
         await cacheService.invalidateAfterDataChange(req.user.id);

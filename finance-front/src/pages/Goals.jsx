@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { Plus, Target, Trophy, Clock, DollarSign, Trash2 } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
-import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { motion } from 'framer-motion';
-import { differenceInDays } from 'date-fns';
+import SkeletonLoader from '../components/ui/SkeletonLoader';
 import { toast } from '../components/ui/Toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
-
+import { differenceInDays } from 'date-fns';
 export default function Goals() {
     const { t, i18n } = useTranslation();
     const { goals, addGoal, deleteGoal, addMoneyToGoal, accounts, settings } = useFinanceStore();
@@ -23,6 +22,23 @@ export default function Goals() {
     const [createForm, setCreateForm] = useState({ name: '', target_amount: '', deadline: '', icon: '🎯', color: '#2563eb' });
     const [topUpAmount, setTopUpAmount] = useState('');
     const [selectedAccount, setSelectedAccount] = useState('');
+
+    // Confirm Dialog State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const openConfirm = (title, message, onConfirm, type = 'danger') => {
+        setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+    };
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
 
     const handleCreate = async () => {
         if (!createForm.name || !createForm.target_amount) return toast.error(t('goals.toast_fill_fields'));
@@ -42,9 +58,13 @@ export default function Goals() {
 
     const handleDelete = async (e, id) => {
         e.stopPropagation();
-        if (confirm(t('goals.confirm_delete'))) {
-            await deleteGoal(id);
-        }
+        openConfirm(
+            t('goals.confirm_delete_title', 'Delete Goal?'),
+            t('goals.confirm_delete'),
+            async () => {
+                await deleteGoal(id);
+            }
+        );
     };
 
     // Helper for currency formatting based on current language
@@ -180,41 +200,41 @@ export default function Goals() {
             <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={t('goals.create_title')}>
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('goals.name_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('goals.name_label')}</label>
                         <input
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 focus:border-indigo-500 shadow-sm"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                             placeholder={t('goals.name_placeholder')}
                             value={createForm.name}
                             onChange={e => setCreateForm({ ...createForm, name: e.target.value })}
                         />
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('goals.target_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('goals.target_label')}</label>
                         <div className="relative">
                             <input
                                 type="number"
-                                className="w-full p-4 pl-12 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 focus:border-indigo-500 text-xl shadow-sm"
+                                className="w-full p-4 pl-12 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white focus:border-indigo-500 text-xl shadow-sm transition-colors"
                                 placeholder="0"
                                 value={createForm.target_amount}
                                 onChange={e => setCreateForm({ ...createForm, target_amount: e.target.value })}
                             />
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-bold">{settings.base_currency}</div>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 font-bold">{settings.base_currency}</div>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('goals.deadline_label')}</label>
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('goals.deadline_label')}</label>
                             <input
                                 type="date"
-                                className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 focus:border-indigo-500 shadow-sm"
+                                className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white focus:border-indigo-500 shadow-sm transition-colors"
                                 value={createForm.deadline}
                                 onChange={e => setCreateForm({ ...createForm, deadline: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('goals.icon_label')}</label>
+                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('goals.icon_label')}</label>
                             <select
-                                className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm appearance-none"
+                                className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm appearance-none transition-colors"
                                 value={createForm.icon}
                                 onChange={e => setCreateForm({ ...createForm, icon: e.target.value })}
                             >
@@ -235,18 +255,18 @@ export default function Goals() {
             {/* MODAL: TOP UP */}
             <Modal isOpen={!!topUpGoal} onClose={() => setTopUpGoal(null)} title={t('goals.top_up_title')}>
                 <div className="space-y-6">
-                    <div className="bg-indigo-50 p-4 rounded-2xl flex items-center gap-4 border border-indigo-100">
+                    <div className="bg-indigo-50 dark:bg-indigo-500/10 p-4 rounded-2xl flex items-center gap-4 border border-indigo-100 dark:border-white/5">
                         <div className="text-4xl">{topUpGoal?.icon}</div>
                         <div>
-                            <h3 className="text-lg font-bold text-zinc-900">{topUpGoal?.name}</h3>
-                            <p className="text-zinc-500 text-xs font-bold uppercase">{t('goals.remaining')} {topUpGoal ? formatCurrency(topUpGoal.target_amount - topUpGoal.current_amount) : 0}</p>
+                            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">{topUpGoal?.name}</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase">{t('goals.remaining')} {topUpGoal ? formatCurrency(topUpGoal.target_amount - topUpGoal.current_amount) : 0}</p>
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-zinc-500 mb-1 block uppercase">{t('goals.account_label')}</label>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('goals.account_label')}</label>
                         <select
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none text-zinc-900 shadow-sm focus:border-indigo-500"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm focus:border-indigo-500 transition-colors"
                             value={selectedAccount}
                             onChange={e => setSelectedAccount(e.target.value)}
                         >
@@ -261,12 +281,12 @@ export default function Goals() {
                         <input
                             type="number"
                             autoFocus
-                            className="w-full p-4 bg-white border border-zinc-200 rounded-xl font-bold outline-none focus:border-emerald-500 text-2xl sm:text-3xl text-center text-emerald-600 shadow-sm tabular-nums"
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none focus:border-emerald-500 text-2xl sm:text-3xl text-center text-emerald-600 dark:text-emerald-400 shadow-sm tabular-nums transition-colors"
                             placeholder="0"
                             value={topUpAmount}
                             onChange={e => setTopUpAmount(e.target.value)}
                         />
-                        <div className="text-center text-xs font-bold text-zinc-400 mt-2 uppercase">{t('goals.top_up_amount_label')}</div>
+                        <div className="text-center text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-2 uppercase">{t('goals.top_up_amount_label')}</div>
                     </div>
 
                     <Button onClick={handleTopUp} variant="success" className="w-full py-4 text-lg">
@@ -274,6 +294,18 @@ export default function Goals() {
                     </Button>
                 </div>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirm}
+                onConfirm={() => {
+                    confirmConfig.onConfirm();
+                    closeConfirm();
+                }}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 }

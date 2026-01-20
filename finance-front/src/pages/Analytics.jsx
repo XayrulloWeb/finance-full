@@ -391,9 +391,9 @@ export default function Analytics() {
                             </h2>
                             <Button
                                 size="sm"
-                                variant="secondary"
+                                variant="outline"
                                 onClick={() => setIsBudgetModalOpen(true)}
-                                className="text-xs !py-1.5 !px-3 rounded-lg border-dashed"
+                                className="text-xs !py-1.5 !px-3 rounded-lg"
                             >
                                 + {t('analytics.create')}
                             </Button>
@@ -510,7 +510,7 @@ export default function Analytics() {
                             onChange={e => setBudgetForm({ ...budgetForm, amount: e.target.value })}
                         />
                     </div>
-                    <Button onClick={handleSaveBudget} className="w-full py-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40">
+                    <Button onClick={handleSaveBudget} className="w-full py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl shadow-xl shadow-violet-500/20 hover:shadow-violet-500/40">
                         {t('analytics.save')}
                     </Button>
                 </div>

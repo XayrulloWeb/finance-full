@@ -11,14 +11,14 @@ export default function GlassCard({
 }) {
     // Style only used for gradient cards now, standard cards use Tailwind classes
     const glassStyle = gradient ? {
-        background: 'linear-gradient(135deg, rgba(15, 118, 110, 0.95) 0%, rgba(20, 184, 166, 0.95) 60%, rgba(251, 146, 60, 0.9) 120%)',
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.95) 0%, rgba(124, 58, 237, 0.95) 60%, rgba(236, 72, 153, 0.9) 120%)',
         backdropFilter: 'blur(24px)',
         border: '1px solid rgba(255, 255, 255, 0.3)',
-        boxShadow: '0 20px 40px -10px rgba(15, 118, 110, 0.35)',
+        boxShadow: '0 20px 40px -10px rgba(139, 92, 246, 0.35)',
     } : {};
 
     const baseClasses = `
-        ${gradient ? 'glass-card--gradient text-white' : 'glass-panel text-zinc-900'}
+        ${gradient ? 'glass-card--gradient text-white' : 'glass-panel text-zinc-900 dark:text-zinc-100'}
         relative overflow-hidden p-5 sm:p-6
     `;
 

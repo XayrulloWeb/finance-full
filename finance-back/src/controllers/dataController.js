@@ -7,7 +7,7 @@ const logger = require('../lib/logger');
 exports.getDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
-        const accounts = await prisma.account.findMany({ where: { user_id: userId }, orderBy: { name: 'asc' } });
+        const accounts = await prisma.account.findMany({ where: { user_id: userId, is_hidden: false }, orderBy: { name: 'asc' } });
         const recentTransactions = await prisma.transaction.findMany({ where: { user_id: userId, is_removed: false }, orderBy: { date: 'desc' }, take: 5 });
         res.json({ accounts, recentTransactions });
     } catch (error) {
@@ -22,7 +22,7 @@ exports.getBootstrapData = async (req, res) => {
         const userId = req.user.id;
 
         const [accounts, categories, budgets, debts, goals, recurring, settings, notifications, counterparties, recentTransactions] = await Promise.all([
-            prisma.account.findMany({ where: { user_id: userId }, orderBy: { name: 'asc' } }),
+            prisma.account.findMany({ where: { user_id: userId, is_hidden: false }, orderBy: { name: 'asc' } }),
             prisma.category.findMany({ where: { user_id: userId }, orderBy: { name: 'asc' } }),
             prisma.budget.findMany({ where: { user_id: userId } }),
             prisma.debt.findMany({
@@ -330,8 +330,9 @@ exports.getAnalyticsSummary = async (req, res) => {
         const isDefaultView = !req.query.days || req.query.days == 30;
 
         if (isDefaultView) {
-            const cached = await cacheService.getAnalytics(userId);
-            if (cached) return res.json(cached);
+            // Временно отключаем кэш для аналитики, чтобы данные обновлялись мгновенно
+            // const cached = await cacheService.getAnalytics(userId);
+            // if (cached) return res.json(cached);
         }
 
         const now = new Date();

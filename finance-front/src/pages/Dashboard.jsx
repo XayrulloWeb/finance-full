@@ -70,7 +70,7 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="space-y-8 sm:space-y-10 animate-fade-in pb-28 sm:pb-32">
+        <div className="space-y-8 sm:space-y-10 animate-fade-in pb-40 sm:pb-48">
 
             <SmartAlerts />
             <BalanceCard />
@@ -85,7 +85,7 @@ export default function Dashboard() {
                         <div className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">{t('ai.forecast.title')}</div>
                         <TrendingUp className="text-emerald-500" size={18} strokeWidth={2.5} />
                     </div>
-                    <div className="mt-3 text-2xl font-black text-zinc-900">
+                    <div className="mt-3 text-2xl font-black text-zinc-900 dark:text-white">
                         {isPrivacy ? '?????' : new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0))} {currency}
                     </div>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-2">
@@ -287,8 +287,8 @@ function DesktopFAB({ openModal, accounts, t }) {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center justify-center w-16 h-16 rounded-2xl text-white shadow-2xl transition-all duration-300 ${isOpen
-                        ? 'bg-zinc-800 rotate-45 shadow-zinc-800/30'
-                        : 'bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-500/40 hover:shadow-teal-500/60'
+                    ? 'bg-zinc-800 rotate-45 shadow-zinc-800/30'
+                    : 'bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-500/40 hover:shadow-teal-500/60'
                     }`}
             >
                 {isOpen ? <X size={28} strokeWidth={2.5} /> : <Plus size={32} strokeWidth={2.5} />}

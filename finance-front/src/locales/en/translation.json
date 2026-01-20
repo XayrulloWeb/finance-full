@@ -33,7 +33,7 @@
         "stats": {
             "income": "Income",
             "expense": "Expense",
-            "balance": "Balance",
+            "balance": "Savings",
             "budgets": "Budgets",
             "this_month": "This Month",
             "avg_completion": "Avg Completion"
@@ -48,6 +48,11 @@
         "title": "Settings",
         "language": "App Language",
         "language_desc": "Select interface language",
+        "notifications": "Notifications",
+        "enable_push": "Enable Push Notifications",
+        "push_desc": "Get reminders for debts, goals, and recurring payments",
+        "push_enabled": "Notifications Enabled",
+        "push_error": "Failed to enable notifications",
         "general": "General",
         "accounts": "Accounts",
         "categories": "Categories",
@@ -95,7 +100,10 @@
         "search": "Search...",
         "loading": "Loading...",
         "confirm": "Are you sure?",
-        "success": "Success"
+        "success": "Success",
+        "income": "Income",
+        "expense": "Expense",
+        "transfer": "Transfer"
     },
     "auth": {
         "check_email": "Check your email!",
@@ -623,5 +631,16 @@
                 "message": "A repeated charge (~{{amount}}) appears {{count}} times."
             }
         }
+    },
+    "onboarding": {
+        "welcome_title": "Welcome! 🎉",
+        "welcome_desc": "To get started, create your first account. It only takes a minute!",
+        "create_first_account": "Create first account",
+        "account_subtitle": "Choose a template or create your own",
+        "preset_card": "Main Card",
+        "preset_cash": "Cash",
+        "preset_savings": "Savings",
+        "preset_deposit": "Bank Deposit",
+        "back": "Back"
     }
 }

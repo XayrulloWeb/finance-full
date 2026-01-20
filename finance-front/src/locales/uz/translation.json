@@ -16,6 +16,11 @@
         "title": "Sozlamalar",
         "language": "Ilova tili",
         "language_desc": "Interfeys tilini tanlang",
+        "notifications": "Bildirishnomalar",
+        "enable_push": "Bildirishnomalarni yoqish",
+        "push_desc": "Qarzlar, maqsadlar va to'lovlar haqida eslatmalar",
+        "push_enabled": "Bildirishnomalar yoqildi",
+        "push_error": "Bildirishnomalarni yoqishda xatolik",
         "general": "Umumiy",
         "accounts": "Hisoblar",
         "categories": "Kategoriyalar",
@@ -147,10 +152,10 @@
         "stats": {
             "income": "Kirim",
             "expense": "Chiqim",
-            "balance": "Balans",
-            "budgets": "Byudjetlar",
+            "balance": "Jamg'arma",
+            "budgets": "Budjetlar",
             "this_month": "Shu oy",
-            "avg_completion": "O'rtacha bajarilish"
+            "avg_completion": "O'rtacha bajarish"
         },
         "alerts": {
             "budget_exceeded": "Byudjet oshib ketdi!",
@@ -360,7 +365,10 @@
         "name": "Nomi",
         "notes": "Izohlar",
         "optional": "ixtiyoriy",
-        "due_date": "Muddat"
+        "due_date": "Muddat",
+        "income": "Kirim",
+        "expense": "Chiqim",
+        "transfer": "O'tkazma"
     },
     "auth": {
         "check_email": "Pochtani tekshiring!",
@@ -574,9 +582,7 @@
         "empty": "Yangi bildirishnomalar yo'q",
         "today": "Bugun",
         "yesterday": "Kecha",
-        "earlier": "Oldinroq"
-    },
-    "ai": {
+        "earlier": "Oldinroq",
         "forecast": {
             "title": "AI prognoz",
             "message": "Shu tempda davom etsangiz, xarajatlar {{value}} ga yetishi mumkin."
@@ -620,5 +626,16 @@
                 "message": "Takroriy to?lov (~{{amount}}) {{count}} marta uchradi."
             }
         }
+    },
+    "onboarding": {
+        "welcome_title": "Xush kelibsiz! 🎉",
+        "welcome_desc": "Boshlash uchun birinchi hisobingizni yarating. Bu atigi bir daqiqa vaqt oladi!",
+        "create_first_account": "Birinchi hisobni yaratish",
+        "account_subtitle": "Shablonni tanlang yoki o'zingiznikini yarating",
+        "preset_card": "Asosiy karta",
+        "preset_cash": "Naqd pul",
+        "preset_savings": "Jamg'arma",
+        "preset_deposit": "Bank omonati",
+        "back": "Orqaga"
     }
 }

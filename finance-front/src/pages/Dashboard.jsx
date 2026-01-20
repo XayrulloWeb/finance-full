@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { ArrowRightLeft, Plus, TrendingUp, CreditCard } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRightLeft, Plus, TrendingUp, TrendingDown, CreditCard, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import TransactionItem from '../components/TransactionItem';
@@ -206,6 +206,93 @@ export default function Dashboard() {
                     )}
                 </div>
             </section>
+
+            {/* 🚀 FLOATING ACTION BUTTON (Desktop) */}
+            <DesktopFAB openModal={openModal} accounts={accounts} t={t} />
+        </div>
+    );
+}
+
+// 🎯 Desktop Floating Action Button Component
+function DesktopFAB({ openModal, accounts, t }) {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleAction = (modalType, props = {}) => {
+        if (accounts.length === 0) {
+            toast.error(t('settings.accounts') + ' required');
+            return;
+        }
+        openModal(modalType, props);
+        setIsOpen(false);
+    };
+
+    const fabActions = [
+        {
+            id: 'income',
+            icon: TrendingUp,
+            label: t('common.income') || 'Доход',
+            color: 'bg-emerald-500 hover:bg-emerald-600',
+            shadow: 'shadow-emerald-500/40',
+            onClick: () => handleAction('transaction', { initialType: 'income' })
+        },
+        {
+            id: 'expense',
+            icon: TrendingDown,
+            label: t('common.expense') || 'Расход',
+            color: 'bg-rose-500 hover:bg-rose-600',
+            shadow: 'shadow-rose-500/40',
+            onClick: () => handleAction('transaction', { initialType: 'expense' })
+        },
+        {
+            id: 'transfer',
+            icon: ArrowRightLeft,
+            label: t('common.transfer') || 'Перевод',
+            color: 'bg-indigo-500 hover:bg-indigo-600',
+            shadow: 'shadow-indigo-500/40',
+            onClick: () => handleAction('transfer')
+        }
+    ];
+
+    return (
+        <div className="hidden lg:block fixed bottom-8 right-8 z-50">
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                        className="absolute bottom-20 right-0 flex flex-col gap-3 items-end"
+                    >
+                        {fabActions.map((action, idx) => (
+                            <motion.button
+                                key={action.id}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                transition={{ delay: idx * 0.05 }}
+                                onClick={action.onClick}
+                                className={`flex items-center gap-3 px-5 py-3 rounded-2xl text-white font-bold shadow-lg ${action.color} ${action.shadow} transition-all hover:scale-105 active:scale-95`}
+                            >
+                                <action.icon size={20} strokeWidth={2.5} />
+                                <span>{action.label}</span>
+                            </motion.button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Main FAB Button */}
+            <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center justify-center w-16 h-16 rounded-2xl text-white shadow-2xl transition-all duration-300 ${isOpen
+                        ? 'bg-zinc-800 rotate-45 shadow-zinc-800/30'
+                        : 'bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-500/40 hover:shadow-teal-500/60'
+                    }`}
+            >
+                {isOpen ? <X size={28} strokeWidth={2.5} /> : <Plus size={32} strokeWidth={2.5} />}
+            </motion.button>
         </div>
     );
 }

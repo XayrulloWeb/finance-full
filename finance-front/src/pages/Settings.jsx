@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Trash2, Plus, LogOut, User, Wallet, Tag, Shield, Download, Upload, Globe, ChevronRight, Zap, RefreshCw, Sparkles } from 'lucide-react';
+import { Trash2, Plus, LogOut, User, Wallet, Tag, Shield, Download, Upload, Globe, ChevronRight, Zap, RefreshCw, Sparkles, Bell } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '../components/ui/Toast';
+import { subscribeToPush } from '../lib/push';
 
 // Imported Modals
 import AccountModal from '../components/modals/AccountModal';
@@ -106,6 +107,35 @@ export default function Settings() {
     if (success) {
       toast.success(t('common.save'));
       setIsEditRateModalOpen(false);
+    }
+  };
+
+  const handleRefreshRates = async () => {
+    const toastId = toast.loading('Updating rates...');
+    try {
+      const success = await store.refreshCurrencyRates();
+      if (success) {
+        toast.dismiss(toastId);
+        toast.success('Rates updated successfully');
+      } else {
+        toast.dismiss(toastId);
+        toast.error('Failed to update rates');
+      }
+    } catch (e) {
+      toast.dismiss(toastId);
+      toast.error('Error updating rates');
+    }
+  };
+
+  const handleSubscribe = async () => {
+    const toastId = toast.loading('Enabling notifications...');
+    const success = await subscribeToPush();
+    if (success) {
+      toast.dismiss(toastId);
+      toast.success(t('settings.push_enabled'));
+    } else {
+      toast.dismiss(toastId);
+      toast.error(t('settings.push_error'));
     }
   };
 
@@ -293,12 +323,29 @@ export default function Settings() {
                     <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
                       <Globe size={28} strokeWidth={2} />
                     </div>
-                    <button onClick={() => setIsEditRateModalOpen(true)} className="px-4 py-2 bg-zinc-900 text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                      {t('common.edit')}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleRefreshRates}
+                        className="px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors flex items-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
+                        title="Update rates from Central Bank"
+                      >
+                        <RefreshCw size={14} />
+                        <span>Update</span>
+                      </button>
+                      <button onClick={() => setIsEditRateModalOpen(true)} className="px-4 py-2 bg-zinc-900 text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                        {t('common.edit')}
+                      </button>
+                    </div>
                   </div>
                   <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-1">{t('settings.currencies')}</h3>
-                  <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-4">{t('settings.currencies_desc')}</p>
+                  <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-4 flex justify-between items-center">
+                    {t('settings.currencies_desc')}
+                    {store.settings.updated_at && (
+                      <span className="text-xs bg-zinc-100 dark:bg-white/5 px-2 py-1 rounded text-zinc-400">
+                        Updated: {new Date(store.settings.updated_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </p>
 
                   <div className="space-y-3 bg-zinc-50 dark:bg-slate-900/50 p-4 rounded-xl border border-zinc-100 dark:border-white/10">
                     <div className="flex justify-between items-center text-sm font-bold">
@@ -334,6 +381,25 @@ export default function Settings() {
                   <div className="text-xs text-zinc-400 font-bold px-3">
                     {t('settings.app_version')} 2.4.0 (Build 890)
                   </div>
+                </GlassCard>
+              </motion.div>
+
+              {/* Push Notifications - New Card */}
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
+                <GlassCard className="h-full border-t-4 border-t-rose-500">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-3 bg-rose-50 rounded-2xl text-rose-600">
+                      <Bell size={28} strokeWidth={2} />
+                    </div>
+                    <button
+                      onClick={handleSubscribe}
+                      className="px-4 py-2 bg-rose-500 text-white text-xs font-bold rounded-lg hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30"
+                    >
+                      {t('settings.enable_push')}
+                    </button>
+                  </div>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-1">{t('settings.notifications')}</h3>
+                  <p className="text-zinc-500 dark:text-zinc-400 font-medium">{t('settings.push_desc')}</p>
                 </GlassCard>
               </motion.div>
 

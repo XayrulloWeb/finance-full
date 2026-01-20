@@ -47,6 +47,7 @@ model User {
   linked_debts_as_a      LinkedDebt[]   @relation("LinkedDebtsAsUserA")
   linked_debts_as_b      LinkedDebt[]   @relation("LinkedDebtsAsUserB")
   debt_activities        DebtActivity[]
+  push_subscriptions     PushSubscription[]
 
   @@index([status])
   @@map("users")
@@ -385,4 +386,18 @@ model DebtActivity {
   
   @@index([linked_debt_id, created_at(sort: Desc)])
   @@map("debt_activities")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  user_id   String   @db.Uuid
+  endpoint  String
+  keys      Json     // Store { p256dh, auth }
+  ua        String?  // User Agent string for info
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("push_subscriptions")
 }

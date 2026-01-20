@@ -555,3 +555,14 @@ exports.importData = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.refreshCurrencyRates = async (req, res) => {
+    try {
+        const CurrencyService = require('../services/currencyService');
+        const rates = await CurrencyService.refreshUserRates(req.user.id);
+        res.json({ success: true, rates });
+    } catch (error) {
+        logger.error('Refresh Rates Error', { error: error.message, userId: req.user.id });
+        res.status(500).json({ error: error.message });
+    }
+};

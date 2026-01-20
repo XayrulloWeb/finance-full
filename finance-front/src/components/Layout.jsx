@@ -11,6 +11,7 @@ import Button from './ui/Button';
 import AccountModal from './modals/AccountModal';
 import TransactionModal from './modals/TransactionModal';
 import TransferModal from './modals/TransferModal';
+import OnboardingModal from './OnboardingModal';
 import { ArrowRightLeft, TrendingUp, TrendingDown } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next'; // Import hook
@@ -19,11 +20,14 @@ export default function Layout() {
   const { t } = useTranslation(); // Init hook
   const user = useFinanceStore(s => s.user);
   const logout = useFinanceStore(s => s.logout);
-  const unreadCount = useFinanceStore(s => s.unreadCount);
+  const unreadCount = useFinanceStore(s => s.unreadNotifications);
   const fetchUnreadCount = useFinanceStore(s => s.fetchUnreadCount);
+  const accounts = useFinanceStore(s => s.accounts);
+  const loading = useFinanceStore(s => s.loading);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = React.useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = React.useState(false);
 
   // Polling for notifications (every 30s)
   React.useEffect(() => {
@@ -267,6 +271,12 @@ export default function Layout() {
       <TransferModal
         isOpen={activeModal === 'transfer'}
         onClose={closeModal}
+      />
+
+      {/* ONBOARDING MODAL - Show when user has no accounts */}
+      <OnboardingModal
+        isOpen={!loading && accounts.length === 0 && !onboardingDismissed}
+        onComplete={() => setOnboardingDismissed(true)}
       />
     </div>
   );

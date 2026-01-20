@@ -174,6 +174,24 @@ export const createUserSlice = (set, get) => ({
         }
     },
 
+    // Fetch only the unread count (lightweight for polling)
+    fetchUnreadCount: async () => {
+        try {
+            const { data } = await api.get('/notifications/unread-count');
+            set({ unreadNotifications: data.count });
+        } catch (error) {
+            console.error('Failed to fetch unread count:', error);
+            // Fallback: If endpoint doesn't exist, use notifications list
+            try {
+                const { data } = await api.get('/notifications?page=0&limit=50');
+                const unreadCount = data.data.filter(n => !n.is_read).length;
+                set({ unreadNotifications: unreadCount });
+            } catch (fallbackError) {
+                console.error('Fallback fetch also failed:', fallbackError);
+            }
+        }
+    },
+
     // Заглушка, чтобы не ломать вызовы в App.jsx
     // Теперь курсы валют хранятся на бэкенде в UserSettings
     updateCurrencyRatesIfNeeded: async () => {

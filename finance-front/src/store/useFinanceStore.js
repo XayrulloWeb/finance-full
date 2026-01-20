@@ -39,6 +39,34 @@ export const useFinanceStore = create((set, get) => ({
     }
   },
 
+  updateSettings: async (updates) => {
+    try {
+      const { data } = await api.put('/settings', updates);
+      set({ settings: data });
+      return true;
+    } catch (e) { console.error(e); return false; }
+  },
+
+  refreshCurrencyRates: async () => {
+    try {
+      const { data } = await api.post('/settings/refresh-rates');
+      if (data.success && data.rates) {
+        set(state => ({
+          settings: {
+            ...state.settings,
+            currency_rates: data.rates,
+            updated_at: new Date().toISOString()
+          }
+        }));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  },
+
   // ==================================================
   // ORCHESTRATOR ACTIONS
   // ==================================================

@@ -1,6 +1,7 @@
 const prisma = require('../lib/prisma');
 const BalanceService = require('../services/balanceService');
 const cacheService = require('../services/cacheService');
+const budgetAlertService = require('../services/budgetAlertService');
 const { ensureAccountOwnership, ensureOptionalCategoryOwnership, ensureOptionalCounterpartyOwnership } = require('../lib/ownership');
 
 // Получение списка транзакций (с фильтрами и пагинацией)
@@ -28,6 +29,14 @@ exports.getTransactions = async (req, res) => {
 
         if (account_id && account_id !== 'all') where.account_id = account_id;
         if (category_id && category_id !== 'all') where.category_id = category_id;
+
+        // Фильтры по сумме (новое в Phase 4)
+        if (req.query.minAmount) {
+            where.amount = { ...where.amount, gte: Number(req.query.minAmount) };
+        }
+        if (req.query.maxAmount) {
+            where.amount = { ...where.amount, lte: Number(req.query.maxAmount) };
+        }
 
         // Поиск по комментарию
         if (search) {
@@ -124,6 +133,11 @@ exports.createTransaction = async (req, res) => {
 
             return newTx;
         });
+
+        // Check budget limits (async, don't block response too much? actually await is fine)
+        if (result && result.type === 'expense' && result.category_id) {
+            await budgetAlertService.checkBudgetLimits(userId, result.category_id, result.amount, result.date);
+        }
 
         res.json(result);
     } catch (error) {
@@ -347,6 +361,11 @@ exports.updateTransaction = async (req, res) => {
                 }
             });
         });
+
+        // Check budget limits if it's an expense and has category
+        if (result && result.type === 'expense' && result.category_id) {
+            await budgetAlertService.checkBudgetLimits(userId, result.category_id, result.amount, result.date);
+        }
 
         res.json(result);
     } catch (error) {

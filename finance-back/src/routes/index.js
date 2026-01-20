@@ -56,6 +56,7 @@ router.put('/recurring/:id', authMiddleware, userLimiter, recurringController.up
 router.delete('/recurring/:id', authMiddleware, userLimiter, recurringController.deleteRecurring);
 router.get('/settings', authMiddleware, userLimiter, dataController.getSettings);
 router.put('/settings', authMiddleware, userLimiter, dataController.updateSettings);
+router.post('/settings/refresh-rates', authMiddleware, userLimiter, dataController.refreshCurrencyRates);
 router.get('/notifications', authMiddleware, userLimiter, dataController.getNotifications);
 router.get('/notifications/unread-count', authMiddleware, userLimiter, dataController.getUnreadNotificationsCount);
 router.post('/notifications/read-all', authMiddleware, userLimiter, dataController.markAllNotificationsRead);
@@ -134,6 +135,12 @@ router.post('/admin/users/:id/reset-password', authMiddleware, adminMiddleware, 
 router.get('/admin/content', authMiddleware, adminMiddleware, userLimiter, adminController.getAdminContent);
 router.post('/admin/content/:type/:id/action', authMiddleware, adminMiddleware, userLimiter, adminController.moderateContent);
 router.get('/admin/export', authMiddleware, adminMiddleware, userLimiter, adminController.exportUsers);
+
+// --- PUSH NOTIFICATIONS ---
+const pushController = require('../controllers/pushController');
+router.get('/push/key', authMiddleware, userLimiter, pushController.getPublicKey);
+router.post('/push/subscribe', authMiddleware, userLimiter, pushController.subscribe);
+router.post('/push/test', authMiddleware, userLimiter, pushController.sendTest);
 
 // --- TEST ROUTES (Development Only) ---
 if (process.env.NODE_ENV !== 'production') {

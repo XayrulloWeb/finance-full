@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const prisma = require('../lib/prisma');
 const BalanceService = require('../services/balanceService');
+const CurrencyService = require('../services/currencyService');
 
 const processRecurringTransactions = async () => {
     console.log('🔄 Running Recurring Transactions Check...');
@@ -70,7 +71,20 @@ const processRecurringTransactions = async () => {
 // Запуск каждый день в 00:01
 const initScheduler = () => {
     cron.schedule('1 0 * * *', processRecurringTransactions);
-    console.log('⏰ Scheduler initialized (Running daily at 00:01)');
+
+    // Обновление курсов валют каждый день в 09:00
+    cron.schedule('0 9 * * *', async () => {
+        console.log('💱 Updating currency rates...');
+        await CurrencyService.updateAllUsersRates();
+    });
+
+    // Напоминания (долги, цели) каждый день в 10:00
+    cron.schedule('0 10 * * *', async () => {
+        const ReminderService = require('../services/reminderService');
+        await ReminderService.checkReminders();
+    });
+
+    console.log('⏰ Scheduler initialized (Running daily at 00:01, 09:00, 10:00)');
 
     // DEV: Можно раскомментировать для теста при старте сервера
     // processRecurringTransactions();

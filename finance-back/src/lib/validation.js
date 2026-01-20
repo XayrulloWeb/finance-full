@@ -54,7 +54,7 @@ const accountSchema = z.object({
     currency: z.string().length(3),
     color: z.string().regex(/^#[0-9A-F]{6}$/i),
     icon: z.string().max(10),
-    balance: z.number().optional()
+    initialBalance: z.number().optional()
 });
 
 const updateAccountSchema = z.object({

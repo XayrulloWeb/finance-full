@@ -378,102 +378,109 @@ export default function Analytics() {
                         ))}
                     </div>
                 </GlassCard>
-            </div>
 
-            {/* 3. BUDGETS & TOP EXPENSES */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 3. BUDGETS & TOP EXPENSES */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* BUDGETS */}
-                <section>
-                    <div className="flex justify-between items-center mb-4 px-2">
-                        <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
-                            <Target className="text-rose-500" />
-                            {t('analytics.budgets')}
-                        </h2>
-                        <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setIsBudgetModalOpen(true)}
-                            className="text-xs !py-1.5 !px-3 rounded-lg border-dashed"
-                        >
-                            + {t('analytics.create')}
-                        </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {store.budgets.length > 0 ? store.budgets.map(b => {
-                            const cat = store.categories.find(c => c.id === b.category_id);
-                            if (!cat) return null;
-                            const progress = store.getBudgetProgress ? store.getBudgetProgress(cat.id) : { percent: 0, spent: 0, limit: b.amount, isOver: false, remaining: b.amount };
-
-                            return (
-                                <GlassCard key={b.id} className="!p-4 bg-white/60 relative overflow-hidden group">
-                                    <div className="flex justify-between items-start mb-6 z-10 relative">
-                                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl">
-                                            {cat.icon}
-                                        </div>
-                                        <div onClick={() => { setBudgetForm({ categoryId: b.category_id, amount: b.amount }); setIsBudgetModalOpen(true); }} className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-zinc-100 rounded-lg">
-                                            <Calculator size={16} className="text-zinc-400" />
-                                        </div>
-                                    </div>
-
-                                    <div className="relative z-10">
-                                        <h4 className="font-bold text-zinc-900 mb-0.5">{cat.name}</h4>
-                                        <div className="text-xs text-zinc-500 font-medium mb-3">{t('analytics.limit')} {formatCurrency(b.amount)}</div>
-
-                                        <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${Math.min(progress.percent, 100)}%` }}
-                                                className={`h-full rounded-full ${progress.isOver ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between mt-2 text-xs font-bold">
-                                            <span className={progress.isOver ? 'text-rose-600' : 'text-emerald-600'}>{progress.percent}%</span>
-                                            <span className="text-zinc-400">{formatCurrency(progress.remaining)} {t('analytics.remaining')}</span>
-                                        </div>
-                                    </div>
-                                </GlassCard>
-                            );
-                        }) : (
-                            <div className="col-span-full border-2 border-dashed border-zinc-200 rounded-2xl p-8 flex flex-col items-center justify-center text-zinc-400 hover:border-indigo-300 hover:bg-indigo-50/10 transition-colors cursor-pointer" onClick={() => setIsBudgetModalOpen(true)}>
-                                <Target className="mb-2 opacity-50" />
-                                <span className="text-sm font-bold">{t('analytics.add_budget')}</span>
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                {/* TOP EXPENSES */}
-                <section>
-                    <div className="flex items-center mb-4 px-2">
-                        <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
-                            <CreditCard className="text-amber-500" />
-                            {t('analytics.top_expenses')}
-                        </h2>
-                    </div>
-                    <GlassCard className="!p-0 overflow-hidden">
-                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                            {expenseData.slice(0, 10).map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                            {item.icon}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-zinc-900 text-sm">{item.name}</div>
-                                            <div className="text-xs text-zinc-400 font-bold">{totals.expense > 0 ? Math.round((item.value / totals.expense) * 100) : 0}% {t('analytics.of_expenses')}</div>
-                                        </div>
-                                    </div>
-                                    <div className="font-bold text-zinc-900 font-money">
-                                        {formatCurrency(item.value)}
-                                    </div>
-                                </div>
-                            ))}
-                            {expenseData.length === 0 && <div className="p-8 text-center text-zinc-400 text-sm">{t('analytics.no_data')}</div>}
+                    {/* BUDGETS */}
+                    <section>
+                        <div className="flex justify-between items-center mb-4 px-2">
+                            <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
+                                <Target className="text-rose-500" />
+                                {t('analytics.budgets')}
+                            </h2>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setIsBudgetModalOpen(true)}
+                                className="text-xs !py-1.5 !px-3 rounded-lg border-dashed"
+                            >
+                                + {t('analytics.create')}
+                            </Button>
                         </div>
-                    </GlassCard>
-                </section>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {store.budgets.length > 0 ? store.budgets.map(b => {
+                                const cat = store.categories.find(c => c.id === b.category_id);
+                                if (!cat) return null;
+                                const progress = store.getBudgetProgress ? store.getBudgetProgress(cat.id) : { percent: 0, spent: 0, limit: b.amount, isOver: false, remaining: b.amount };
+
+                                return (
+                                    <GlassCard key={b.id} className="!p-4 bg-white/60 relative overflow-hidden group">
+                                        <div className="flex justify-between items-start mb-6 z-10 relative">
+                                            <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl">
+                                                {cat.icon}
+                                            </div>
+                                            <div onClick={() => { setBudgetForm({ categoryId: b.category_id, amount: b.amount }); setIsBudgetModalOpen(true); }} className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-zinc-100 rounded-lg">
+                                                <Calculator size={16} className="text-zinc-400" />
+                                            </div>
+                                        </div>
+
+                                        <div className="relative z-10">
+                                            <h4 className="font-bold text-zinc-900 mb-0.5">{cat.name}</h4>
+                                            <div className="text-xs text-zinc-500 font-medium mb-3">{t('analytics.limit')} {formatCurrency(b.amount)}</div>
+
+                                            <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${Math.min(progress.percent, 100)}%` }}
+                                                    className={`h-full rounded-full ${progress.percent >= 100 ? 'bg-rose-500' :
+                                                        progress.percent >= 80 ? 'bg-amber-500' :
+                                                            'bg-emerald-500'
+                                                        }`}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between mt-2 text-xs font-bold">
+                                                <span className={
+                                                    progress.percent >= 100 ? 'text-rose-600' :
+                                                        progress.percent >= 80 ? 'text-amber-600' :
+                                                            'text-emerald-600'
+                                                }>{progress.percent}%</span>
+                                                <span className="text-zinc-400">{formatCurrency(progress.remaining)} {t('analytics.remaining')}</span>
+                                            </div>
+                                        </div>
+                                    </GlassCard>
+                                );
+                            }) : (
+                                <div className="col-span-full border-2 border-dashed border-zinc-200 rounded-2xl p-8 flex flex-col items-center justify-center text-zinc-400 hover:border-indigo-300 hover:bg-indigo-50/10 transition-colors cursor-pointer" onClick={() => setIsBudgetModalOpen(true)}>
+                                    <Target className="mb-2 opacity-50" />
+                                    <span className="text-sm font-bold">{t('analytics.add_budget')}</span>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* TOP EXPENSES */}
+                    <section>
+                        <div className="flex items-center mb-4 px-2">
+                            <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
+                                <CreditCard className="text-amber-500" />
+                                {t('analytics.top_expenses')}
+                            </h2>
+                        </div>
+                        <GlassCard className="!p-0 overflow-hidden">
+                            <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                                {expenseData.slice(0, 10).map((item, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors group">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                {item.icon}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-zinc-900 text-sm">{item.name}</div>
+                                                <div className="text-xs text-zinc-400 font-bold">{totals.expense > 0 ? Math.round((item.value / totals.expense) * 100) : 0}% {t('analytics.of_expenses')}</div>
+                                            </div>
+                                        </div>
+                                        <div className="font-bold text-zinc-900 font-money">
+                                            {formatCurrency(item.value)}
+                                        </div>
+                                    </div>
+                                ))}
+                                {expenseData.length === 0 && <div className="p-8 text-center text-zinc-400 text-sm">{t('analytics.no_data')}</div>}
+                            </div>
+                        </GlassCard>
+                    </section>
+                </div>
             </div>
 
             {/* MODALS */}
@@ -544,3 +551,4 @@ export default function Analytics() {
         </div>
     );
 }
+// Force rebuild

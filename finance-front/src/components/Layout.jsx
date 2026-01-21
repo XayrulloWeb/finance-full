@@ -258,6 +258,39 @@ export default function Layout() {
       </AnimatePresence>
       <InstallPwa />
 
+      {/* --- DESKTOP FAB (Classic Fixed Button) --- */}
+      <div className="hidden lg:block fixed bottom-8 right-8 z-50">
+        <AnimatePresence>
+          {isActionMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.5, y: 20 }}
+              className="absolute bottom-20 right-0 flex flex-col gap-3 items-end"
+            >
+              <button onClick={() => { openModal('transaction', { initialType: 'income' }); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-500/30 font-bold text-sm whitespace-nowrap transition-colors">
+                <TrendingUp size={18} /> {t('dashboard.monthly_income')}
+              </button>
+              <button onClick={() => { openModal('transaction', { initialType: 'expense' }); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-5 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl shadow-lg shadow-rose-500/30 font-bold text-sm whitespace-nowrap transition-colors">
+                <TrendingDown size={18} /> {t('dashboard.monthly_expense')}
+              </button>
+              <button onClick={() => { openModal('transfer'); setIsActionMenuOpen(false); }} className="flex items-center gap-3 px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-500/30 font-bold text-sm whitespace-nowrap transition-colors">
+                <ArrowRightLeft size={18} /> Transfer
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
+          className={`flex items-center justify-center w-16 h-16 rounded-2xl shadow-2xl shadow-violet-600/40 text-white transition-all duration-300 ${isActionMenuOpen ? 'bg-zinc-800 rotate-45' : 'bg-gradient-to-br from-violet-500 to-violet-700 rotate-0'}`}
+        >
+          <Plus size={28} strokeWidth={2.5} />
+        </motion.button>
+      </div>
+
       {/* GLOBAL MODALS */}
       <AccountModal
         isOpen={activeModal === 'account'}

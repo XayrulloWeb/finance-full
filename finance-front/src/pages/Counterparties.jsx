@@ -63,7 +63,7 @@ export default function Counterparties() {
 
                 {/* Поиск */}
                 <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" size={20} strokeWidth={2.5} />
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" size={20} strokeWidth={2.5} />
                     <input
                         type="text"
                         placeholder={t('counterparties.search_placeholder')}

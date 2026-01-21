@@ -64,7 +64,9 @@
   /* Cyan 500 */
   --color-tertiary: #ec4899;
   /* Pink 500 */
-
+  .text-zinc-700{
+    color: var(--text-main);
+  }
   /* Премиум Glass эффекты */
   --glass-bg: rgba(15, 15, 22, 0.85);
   --glass-border: rgba(139, 92, 246, 0.08);
@@ -394,5 +396,18 @@ main {
 
   main {
     padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+
+@layer base {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
 }

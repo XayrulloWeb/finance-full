@@ -284,14 +284,15 @@ function DesktopFAB({ openModal, accounts, t }) {
 
             {/* Main FAB Button */}
             <motion.button
-                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-center w-16 h-16 rounded-2xl text-white shadow-2xl transition-all duration-300 ${isOpen
-                    ? 'bg-zinc-800 rotate-45 shadow-zinc-800/30'
-                    : 'bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-500/40 hover:shadow-teal-500/60'
+                className={`flex items-center justify-center w-16 h-16 rounded-2xl text-white shadow-2xl shadow-violet-600/40 transition-all duration-300 ${isOpen
+                    ? 'bg-zinc-800 rotate-45'
+                    : 'bg-gradient-to-br from-violet-500 to-violet-700'
                     }`}
             >
-                {isOpen ? <X size={28} strokeWidth={2.5} /> : <Plus size={32} strokeWidth={2.5} />}
+                <Plus size={28} strokeWidth={2.5} />
             </motion.button>
         </div>
     );

@@ -205,7 +205,7 @@ export default function Recurring() {
                                     value={form.day_of_month}
                                     onChange={e => setForm({ ...form, day_of_month: e.target.value })}
                                 />
-                                <Calendar size={18} className="absolute left-3 top-3.5 text-zinc-400" strokeWidth={2.5} />
+                                <Calendar size={18} className="absolute right-[5px] top-[20px] text-zinc-400" strokeWidth={2.5} />
                             </div>
                         </div>
                         <div>

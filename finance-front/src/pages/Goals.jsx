@@ -102,7 +102,7 @@ export default function Goals() {
                 </GlassCard>
             ) : null}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {goals.map((goal, idx) => {
                     const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
                     const daysLeft = goal.deadline ? differenceInDays(new Date(goal.deadline), new Date()) : null;
@@ -115,7 +115,7 @@ export default function Goals() {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: idx * 0.1 }}
                         >
-                            <GlassCard className="relative group min-h-[220px] flex flex-col justify-between hover:border-indigo-300 transition-all cursor-default">
+                            <GlassCard className="relative group min-h-[240px] flex flex-col justify-between hover:border-indigo-300 transition-all cursor-default">
                                 {isCompleted && (
                                     <div className="absolute -top-3 -right-3 bg-yellow-400 text-white p-2 rounded-full shadow-lg animate-bounce z-10">
                                         <Trophy size={20} strokeWidth={2.5} fill="currentColor" />
@@ -123,39 +123,39 @@ export default function Goals() {
                                 )}
 
                                 <div>
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-zinc-100 bg-white">
+                                    <div className="flex justify-between items-start mb-5">
+                                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-zinc-100 bg-white dark:bg-white/5 dark:border-white/10">
                                             {goal.icon}
                                         </div>
                                         <button
                                             onClick={(e) => handleDelete(e, goal.id)}
-                                            className="text-zinc-300 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-50 transition-colors"
+                                            className="text-zinc-300 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={20} />
                                         </button>
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-zinc-900 mb-1 line-clamp-1">{goal.name}</h3>
+                                    <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1 line-clamp-1">{goal.name}</h3>
 
-                                    <div className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
+                                    <div className="flex items-center gap-2 text-base text-zinc-500 dark:text-zinc-400 font-medium">
                                         {formatCurrency(goal.target_amount)} {settings.base_currency}
                                     </div>
 
                                     {daysLeft !== null && !isCompleted && (
-                                        <div className={`mt-2 text-xs font-bold flex items-center gap-1 ${daysLeft < 0 ? 'text-rose-500' : 'text-indigo-500'}`}>
-                                            <Clock size={12} strokeWidth={2.5} />
+                                        <div className={`mt-3 text-xs font-bold flex items-center gap-1 ${daysLeft < 0 ? 'text-rose-500' : 'text-indigo-500'}`}>
+                                            <Clock size={14} strokeWidth={2.5} />
                                             {daysLeft < 0 ? t('goals.overdue', { days: Math.abs(daysLeft) }) : t('goals.days_left', { days: daysLeft })}
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="mt-6 space-y-3">
+                                <div className="mt-8 space-y-3">
                                     <div className="space-y-1">
                                         <div className="flex justify-between text-xs font-bold">
                                             <span className="text-zinc-400">{Math.round(progress)}%</span>
-                                            <span className="text-zinc-900">{formatCurrency(goal.current_amount)}</span>
+                                            <span className="text-zinc-900 dark:text-white">{formatCurrency(goal.current_amount)}</span>
                                         </div>
-                                        <div className="h-3 bg-zinc-100 rounded-full overflow-hidden">
+                                        <div className="h-4 bg-zinc-100 dark:bg-white/10 rounded-full overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${progress}%` }}
@@ -167,14 +167,14 @@ export default function Goals() {
                                     {!isCompleted && (
                                         <Button
                                             size="sm"
-                                            className="w-full bg-zinc-900 text-white hover:bg-zinc-800"
+                                            className="w-full py-3 text-base bg-zinc-900 dark:bg-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
                                             onClick={() => setTopUpGoal(goal)}
                                         >
                                             {t('goals.top_up')}
                                         </Button>
                                     )}
                                     {isCompleted && (
-                                        <div className="w-full py-2 text-center text-xs font-bold text-emerald-600 bg-emerald-50 rounded-xl border border-emerald-100">
+                                        <div className="w-full py-3 text-center text-sm font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
                                             {t('goals.completed')}
                                         </div>
                                     )}
@@ -187,7 +187,7 @@ export default function Goals() {
                 {/* Empty State */}
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="min-h-[220px] rounded-3xl border-2 border-dashed border-zinc-300 flex flex-col items-center justify-center gap-4 text-zinc-400 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-all group"
+                    className="min-h-[240px] rounded-3xl border-2 border-dashed border-zinc-300 dark:border-white/10 flex flex-col items-center justify-center gap-4 text-zinc-400 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all group"
                 >
                     <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center group-hover:bg-white transition-colors">
                         <Plus size={32} />

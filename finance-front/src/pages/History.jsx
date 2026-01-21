@@ -217,7 +217,7 @@ export default function History() {
                                 <div key={virtualItem.key} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: `${virtualItem.size}px`, transform: `translateY(${virtualItem.start}px)` }}>
                                     {item.type === 'header' ? (
                                         <div className="flex items-center px-1 py-3 z-10">
-                                            <div className="bg-[#f3f4f6]/95 dark:bg-[#0f172a]/95 backdrop-blur-sm flex items-center gap-2 border-b border-zinc-200 dark:border-white/5 w-full pb-2">
+                                            <div className="backdrop-blur-sm flex items-center gap-2 border-b border-zinc-200 dark:border-white/5 w-full pb-2">
                                                 <Calendar size={16} className="text-indigo-600 dark:text-indigo-400" strokeWidth={2.5} />
                                                 <span className="font-bold text-zinc-500 dark:text-zinc-400 uppercase text-sm">{format(parseISO(item.date), 'd MMMM yyyy, EEEE', { locale: currentLocale })}</span>
                                             </div>

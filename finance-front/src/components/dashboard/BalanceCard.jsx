@@ -18,7 +18,7 @@ export default function BalanceCard() {
     return (
         <GlassCard
             gradient
-            className="relative overflow-hidden min-h-[220px] flex flex-col justify-center text-white p-8 shadow-2xl shadow-indigo-500/20"
+            className="relative overflow-hidden min-h-[220px] flex flex-col justify-center text-white p-8 rounded-2xl shadow-2xl shadow-indigo-500/20"
         >
             <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none" />

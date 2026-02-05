@@ -151,7 +151,7 @@ exports.createTransaction = async (req, res) => {
         if (error.code === 'P2025') {
             return res.status(404).json({ error: 'Account not found' });
         }
-        res.status(500).json({ error: 'Transaction failed' });
+        res.status(500).json({ error: 'Transaction failed', details: error.message, code: error.code, meta: error.meta });
     }
 };
 

@@ -151,7 +151,13 @@ exports.createTransaction = async (req, res) => {
         if (error.code === 'P2025') {
             return res.status(404).json({ error: 'Account not found' });
         }
-        res.status(500).json({ error: 'Transaction failed', details: error.message, code: error.code, meta: error.meta });
+        console.error('CRITICAL TRANSACTION ERROR:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        res.status(500).json({
+            error: 'TX_FAIL_DEBUG',
+            details: error.message,
+            stack: error.stack,
+            full_error: JSON.stringify(error, Object.getOwnPropertyNames(error))
+        });
     }
 };
 

@@ -99,8 +99,13 @@ export const createTransactionSlice = (set, get) => ({
                 return true;
             }
         } catch (e) {
-            console.error(e);
-            toast.error(i18n.t('toasts.create_error'));
+            console.error('Create Transaction Error:', e);
+            if (e.response && e.response.data) {
+                console.error('Server Error Details:', e.response.data);
+                toast.error(`Error: ${e.response.data.details || e.response.data.error || 'Unknown error'}`);
+            } else {
+                toast.error(i18n.t('toasts.create_error'));
+            }
             return false;
         }
     },

@@ -78,7 +78,7 @@ class BalanceService {
             // Атомарное обновление баланса
             await tx.$executeRaw`
                 UPDATE accounts 
-                SET balance = ${newBalance}, updated_at = NOW()
+                SET balance = ${newBalance}
                 WHERE id = ${accountId}::uuid
             `;
 

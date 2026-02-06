@@ -5,6 +5,8 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { toast } from '../ui/Toast';
 import { useTranslation } from 'react-i18next';
+import { Trash } from 'lucide-react';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 export default function TransactionModal({
     isOpen,
@@ -24,6 +26,15 @@ export default function TransactionModal({
     const [txMode, setTxMode] = useState('category');
     const amountInputRef = React.useRef(null);
 
+    // Confirm Dialog State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
     const [form, setForm] = useState({
         type: 'expense',
         amount: '',
@@ -34,6 +45,22 @@ export default function TransactionModal({
         date: new Date().toISOString().split('T')[0]
     });
 
+    // Helper: Format amount with spaces (e.g. 1 000 000)
+    const formatAmountValue = (value) => {
+        if (!value) return '';
+        const raw = value.toString().replace(/\s/g, '');
+        if (isNaN(raw.replace(',', '.'))) return value;
+        const parts = raw.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        return parts.join('.');
+    };
+
+    // Helper: Parse amount string to number
+    const parseAmountValue = (value) => {
+        if (!value) return 0;
+        return parseFloat(value.toString().replace(/\s/g, '').replace(',', '.'));
+    };
+
     // Init functionality (same as before)
     useEffect(() => {
         if (isOpen) {
@@ -42,7 +69,7 @@ export default function TransactionModal({
                 // EDIT MODE
                 setForm({
                     type: editingTransaction.type,
-                    amount: editingTransaction.amount,
+                    amount: formatAmountValue(editingTransaction.amount),
                     account_id: editingTransaction.account_id,
                     category_id: editingTransaction.category_id || '',
                     counterparty_id: editingTransaction.counterparty_id || '',
@@ -92,7 +119,7 @@ export default function TransactionModal({
             const { data } = await api.post('/ai/transaction-suggest', {
                 type: form.type,
                 comment: form.comment,
-                amount: Number(form.amount) || null
+                amount: parseAmountValue(form.amount) || null
             });
             setAiSuggestion(data);
         } catch (error) {
@@ -106,7 +133,8 @@ export default function TransactionModal({
     const handleSubmit = async () => {
         // --- VALIDATION ---
         if (!form.account_id) return toast.error(t('modals.transaction.error_account'));
-        if (!form.amount || parseFloat(form.amount) <= 0) return toast.error(t('modals.transaction.error_amount'));
+        const numericAmount = parseAmountValue(form.amount);
+        if (!numericAmount || numericAmount <= 0) return toast.error(t('modals.transaction.error_amount'));
 
         if (form.type === 'expense' && txMode === 'category' && !form.category_id) {
             return toast.error(t('modals.transaction.error_category'));
@@ -117,6 +145,7 @@ export default function TransactionModal({
         // Prepare payload
         const payload = {
             ...form,
+            amount: numericAmount,
             // Clear other mode's data
             counterparty_id: txMode === 'counterparty' ? form.counterparty_id : null,
             category_id: txMode === 'category' ? form.category_id : null
@@ -136,6 +165,26 @@ export default function TransactionModal({
             onClose();
             toast.success(t('common.success'));
         }
+    };
+
+    const handleDelete = () => {
+        setConfirmConfig({
+            isOpen: true,
+            title: t('transaction_item.confirm_delete_title', 'Delete Transaction?'),
+            message: t('transaction_item.confirm_delete'),
+            type: 'danger',
+            onConfirm: async () => {
+                const success = await store.deleteTransaction(editingTransaction.id);
+                if (success) {
+                    onClose();
+                    toast.success(t('toasts.tx_deleted'));
+                }
+            }
+        });
+    };
+
+    const closeConfirm = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
     };
 
     const title = editingTransaction
@@ -169,11 +218,17 @@ export default function TransactionModal({
                 <div className="relative">
                     <input
                         ref={amountInputRef}
-                        type="number"
+                        type="text"
                         inputMode="decimal"
                         className={`w-full text-4xl sm:text-5xl font-black p-4 bg-transparent border-b-2 outline-none text-center tabular-nums transition-colors ${form.type === 'expense' ? 'text-rose-500 border-rose-500/30 focus:border-rose-500' : 'text-emerald-500 border-emerald-500/30 focus:border-emerald-500'}`}
                         value={form.amount}
-                        onChange={e => setForm({ ...form, amount: e.target.value })}
+                        onChange={e => {
+                            const val = e.target.value;
+                            // Allow only numbers, spaces, dot, comma
+                            if (/^[0-9\s.,]*$/.test(val)) {
+                                setForm({ ...form, amount: formatAmountValue(val) });
+                            }
+                        }}
                         placeholder="0"
                     />
                     <div className="text-center text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-2 uppercase tracking-wide">{t('modals.transaction.amount_label')} ({store.accounts.find(a => a.id === form.account_id)?.currency})</div>
@@ -280,10 +335,29 @@ export default function TransactionModal({
                     </div>
                 </div>
 
-                <Button onClick={handleSubmit} loading={loading} variant={form.type === 'expense' ? 'danger' : 'success'} className="w-full py-4 text-lg shadow-xl shadow-gray-200 dark:shadow-none">
-                    {editingTransaction ? t('modals.transaction.save_btn') : (form.type === 'expense' ? t('modals.transaction.expense_btn') : t('modals.transaction.income_btn'))}
-                </Button>
+                <div className="flex gap-4">
+                    {editingTransaction && (
+                        <Button variant="danger-outline" onClick={handleDelete} className="px-4 py-4 rounded-xl">
+                            <Trash size={24} />
+                        </Button>
+                    )}
+                    <Button onClick={handleSubmit} loading={loading} variant={form.type === 'expense' ? 'danger' : 'success'} className="flex-1 py-4 text-lg shadow-xl shadow-gray-200 dark:shadow-none bg-gradient-to-r">
+                        {editingTransaction ? t('modals.transaction.save_btn') : (form.type === 'expense' ? t('modals.transaction.expense_btn') : t('modals.transaction.income_btn'))}
+                    </Button>
+                </div>
             </div>
+
+            <ConfirmDialog
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirm}
+                onConfirm={() => {
+                    confirmConfig.onConfirm();
+                    closeConfirm();
+                }}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </Modal>
     );
 }

@@ -207,7 +207,7 @@ export default function History() {
                 )}
             </AnimatePresence>
 
-            <div ref={parentRef} className="flex-grow min-h-0 mt-4" style={{ overflowY: 'auto' }}>
+            <div ref={parentRef} className="flex-grow min-h-0 mt-4 custom-scrollbar" style={{ overflowY: 'auto' }}>
                 {transactions.length > 0 ? (
                     <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
                         {rowVirtualizer.getVirtualItems().map((virtualItem) => {

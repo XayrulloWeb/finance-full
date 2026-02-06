@@ -13,32 +13,40 @@ export default function MonthlyStats() {
     // Helper for number formatting
     const formatNumber = (val) => new Intl.NumberFormat(i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(Math.round(val));
 
+    const { analyticsSummary, isAnalyticsSummaryLoading } = store;
+
+    // Default values if loading or no data
+    const income = analyticsSummary?.totals?.income || 0;
+    const expense = analyticsSummary?.totals?.expense || 0;
+    const balance = analyticsSummary?.totals?.savings || 0;
+    const budgetCompletion = store.getBudgetCompletion(); // This relies on budgets list, which IS fully loaded
+
     const stats = [
         {
             label: t('dashboard.stats.income'),
-            value: store.getMonthlyIncome(),
+            value: income,
             icon: TrendingUp,
-            color: 'success', // text-success, bg-success/10
+            color: 'success',
             delay: 0.1
         },
         {
             label: t('dashboard.stats.expense'),
-            value: store.getMonthlyExpense(),
+            value: expense,
             icon: TrendingDown,
             color: 'error',
             delay: 0.2
         },
         {
             label: t('dashboard.stats.balance'),
-            value: store.getMonthlyProfit(),
+            value: balance,
             icon: Wallet,
-            color: store.getMonthlyProfit() >= 0 ? 'success' : 'error',
+            color: balance >= 0 ? 'success' : 'error',
             delay: 0.3,
-            prefix: store.getMonthlyProfit() >= 0 ? '+' : ''
+            prefix: balance >= 0 ? '+' : ''
         },
         {
             label: t('dashboard.stats.budgets'),
-            value: `${store.getBudgetCompletion()}%`, // Special case for string
+            value: `${budgetCompletion}%`,
             icon: ChevronRight,
             color: 'indigo',
             delay: 0.4,

@@ -41,6 +41,30 @@ exports.getBootstrapData = async (req, res) => {
             prisma.transaction.findMany({ where: { user_id: userId, is_removed: false }, orderBy: { date: 'desc' }, take: 5 })
         ]);
 
+        // Calculate Counterparty Stats for Bootstrap
+        const cpStats = await prisma.transaction.groupBy({
+            by: ['counterparty_id', 'type'],
+            where: {
+                user_id: userId,
+                is_removed: false,
+                counterparty_id: { not: null }
+            },
+            _sum: { amount: true },
+            _count: { id: true }
+        });
+
+        const counterpartiesWithStats = counterparties.map(cp => {
+            const stats = cpStats.filter(s => s.counterparty_id === cp.id);
+            const totalIncome = stats.filter(s => s.type === 'income' || s.type === 'transfer_in').reduce((sum, s) => sum + Number(s._sum.amount), 0);
+            const totalExpense = stats.filter(s => s.type === 'expense' || s.type === 'transfer_out').reduce((sum, s) => sum + Number(s._sum.amount), 0);
+            const transactionCount = stats.reduce((sum, s) => sum + s._count.id, 0);
+
+            return {
+                ...cp,
+                stats: { totalIncome, totalExpense, transactionCount }
+            };
+        });
+
         res.json({
             accounts,
             categories,
@@ -50,7 +74,7 @@ exports.getBootstrapData = async (req, res) => {
             recurring,
             settings,
             notifications,
-            counterparties,
+            counterparties: counterpartiesWithStats,
             recentTransactions
         });
     } catch (error) {

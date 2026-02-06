@@ -51,11 +51,11 @@ export default function Counterparties() {
             {/* Заголовок и поиск */}
             <div className="mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h1 className="text-3xl font-black text-zinc-900">📇 {t('counterparties.title')}</h1>
+                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white">📇 {t('counterparties.title')}</h1>
                     <Button
                         onClick={handleAdd}
                         icon={Plus}
-                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white justify-center"
+                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white justify-center shadow-lg shadow-indigo-500/20"
                     >
                         {t('counterparties.add')}
                     </Button>
@@ -63,11 +63,11 @@ export default function Counterparties() {
 
                 {/* Поиск */}
                 <div className="relative group">
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" size={20} strokeWidth={2.5} />
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors" size={20} strokeWidth={2.5} />
                     <input
                         type="text"
                         placeholder={t('counterparties.search_placeholder')}
-                        className="w-full pl-12 pr-4 py-4 bg-white border-2 border-zinc-100 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 placeholder-zinc-400 font-medium transition-all shadow-sm"
+                        className="w-full pl-6 pr-12 py-4 bg-white dark:bg-slate-800 border-2 border-zinc-100 dark:border-white/5 rounded-2xl outline-none focus:border-indigo-500 dark:focus:border-indigo-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 font-bold transition-all shadow-sm focus:shadow-lg focus:shadow-indigo-500/10"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -92,7 +92,7 @@ export default function Counterparties() {
             {/* Все контрагенты */}
             {regularCounterparties.length > 0 && (
                 <div>
-                    <h2 className="text-xl font-bold text-zinc-900 mb-4">
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4">
                         {t('counterparties.all')} ({regularCounterparties.length})
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -7,11 +7,21 @@ import { useTranslation } from 'react-i18next';
 
 export default function BalanceCard() {
     const { t, i18n } = useTranslation();
-    const { settings, togglePrivacy, getTotalBalanceInBaseCurrency, getIncomeByPeriod, getExpenseByPeriod } = useFinanceStore();
+    const { settings, togglePrivacy, getTotalBalanceInBaseCurrency, analyticsSummary } = useFinanceStore();
 
     const totalBalance = getTotalBalanceInBaseCurrency ? getTotalBalanceInBaseCurrency() : 0;
     const isPrivacy = settings.is_privacy_enabled;
     const currency = settings.base_currency;
+
+    // Get today's stats from analytics trend
+    const getTodayStats = () => {
+        if (!analyticsSummary?.trend) return { income: 0, expense: 0 };
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayData = analyticsSummary.trend.find(d => d.date === todayStr);
+        return todayData || { income: 0, expense: 0 };
+    };
+
+    const { income: todayIncome, expense: todayExpense } = getTodayStats();
 
     const formatNumber = (val) => new Intl.NumberFormat(i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(Math.round(val || 0));
 
@@ -49,13 +59,13 @@ export default function BalanceCard() {
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-success/20 rounded-lg border border-success/30 backdrop-blur-md">
                         <TrendingUp size={16} className="text-success" strokeWidth={2.5} />
                         <span className="text-emerald-100 font-bold text-sm tabular-nums">
-                            {isPrivacy ? '•••' : `+${formatNumber(getIncomeByPeriod('today'))}`}
+                            {isPrivacy ? '•••' : `+${formatNumber(todayIncome)}`}
                         </span>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-error/20 rounded-lg border border-error/30 backdrop-blur-md">
                         <TrendingDown size={16} className="text-error" strokeWidth={2.5} />
                         <span className="text-rose-100 font-bold text-sm tabular-nums">
-                            {isPrivacy ? '•••' : `-${formatNumber(getExpenseByPeriod('today'))}`}
+                            {isPrivacy ? '•••' : `-${formatNumber(todayExpense)}`}
                         </span>
                     </div>
                 </div>

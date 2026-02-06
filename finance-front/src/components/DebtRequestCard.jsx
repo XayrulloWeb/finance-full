@@ -58,33 +58,33 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
     // Incoming request card
     if (type === 'incoming') {
         return (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/5 rounded-xl p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                             <span className="text-2xl">💰</span>
-                            <h3 className="font-bold text-gray-900">
+                            <h3 className="font-bold text-gray-900 dark:text-white">
                                 {request.sender?.email || 'Unknown'}
                             </h3>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-zinc-400">
                             {t('debt_requests.says_you_owe', 'says you')}{' '}
-                            <span className="font-semibold text-gray-900">
+                            <span className="font-semibold text-gray-900 dark:text-white">
                                 {request.debt_type === 'owes_me' ? 'owe' : 'lent'} {request.amount.toLocaleString()}
                             </span>{' '}
-                            for <span className="font-semibold">{request.name}</span>
+                            for <span className="font-semibold text-gray-900 dark:text-white">{request.name}</span>
                         </p>
                     </div>
                     {getStatusBadge(request.status)}
                 </div>
 
                 {request.notes && (
-                    <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">{request.notes}</p>
+                    <div className="mb-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                        <p className="text-sm text-gray-700 dark:text-zinc-300">{request.notes}</p>
                     </div>
                 )}
 
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-zinc-500 mb-4">
                     <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
                         {formatDate(request.created_at)}
@@ -99,7 +99,7 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
                         <button
                             onClick={handleAccept}
                             disabled={loading}
-                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+                            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
                         >
                             <Check className="w-4 h-4" />
                             {t('debt_requests.accept', 'Accept')}
@@ -107,7 +107,7 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
                         <button
                             onClick={() => setShowRejectReason(true)}
                             disabled={loading}
-                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+                            className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
                         >
                             <X className="w-4 h-4" />
                             {t('debt_requests.reject', 'Reject')}
@@ -122,18 +122,18 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             placeholder={t('debt_requests.rejection_reason', 'Reason (optional)')}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 dark:bg-black/20 dark:text-white rounded-lg text-sm outline-none focus:border-indigo-500"
                         />
                         <div className="flex gap-2">
                             <button
                                 onClick={handleReject}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
                             >
                                 Confirm Reject
                             </button>
                             <button
                                 onClick={() => setShowRejectReason(false)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                                className="px-4 py-2 border border-gray-300 dark:border-white/10 dark:text-zinc-300 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-sm font-medium"
                             >
                                 Cancel
                             </button>
@@ -146,30 +146,30 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
 
     // Outgoing request card
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/5 rounded-xl p-5 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                         <span className="text-2xl">📤</span>
-                        <h3 className="font-bold text-gray-900">
+                        <h3 className="font-bold text-gray-900 dark:text-white">
                             {t('debt_requests.you_sent_to', 'Request to')} {request.receiver?.email || request.receiver_email}
                         </h3>
                     </div>
-                    <p className="text-sm text-gray-600">
-                        <span className="font-semibold text-gray-900">{request.amount.toLocaleString()}</span>{' '}
-                        for <span className="font-semibold">{request.name}</span>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">
+                        <span className="font-semibold text-gray-900 dark:text-white">{request.amount.toLocaleString()}</span>{' '}
+                        for <span className="font-semibold text-gray-900 dark:text-white">{request.name}</span>
                     </p>
                 </div>
                 {getStatusBadge(request.status)}
             </div>
 
             {request.notes && (
-                <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">{request.notes}</p>
+                <div className="mb-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                    <p className="text-sm text-gray-700 dark:text-zinc-300">{request.notes}</p>
                 </div>
             )}
 
-            <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-zinc-500 mb-3">
                 <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
                     {formatDate(request.created_at)}
@@ -180,8 +180,8 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
             </div>
 
             {request.status === 'rejected' && request.rejection_reason && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-3">
-                    <p className="text-sm text-red-800">
+                <div className="p-3 bg-red-50 dark:bg-rose-500/10 border border-red-200 dark:border-rose-500/20 rounded-lg mb-3">
+                    <p className="text-sm text-red-800 dark:text-rose-400">
                         <strong>Reason:</strong> {request.rejection_reason}
                     </p>
                 </div>
@@ -191,7 +191,7 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
                 <button
                     onClick={handleCancelClick}
                     disabled={loading}
-                    className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-zinc-300 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
                 >
                     <Trash2 className="w-4 h-4" />
                     {t('common.cancel', 'Cancel Request')}
@@ -200,7 +200,7 @@ export default function DebtRequestCard({ request, type = 'incoming' }) {
                 <button
                     onClick={handleCancelClick}
                     disabled={loading}
-                    className="w-full px-4 py-2 border border-gray-200 text-gray-400 rounded-lg hover:bg-gray-50 hover:text-red-500 hover:border-red-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium text-xs"
+                    className="w-full px-4 py-2 border border-gray-200 dark:border-white/5 text-gray-400 dark:text-zinc-500 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 hover:text-red-500 dark:hover:text-rose-500 hover:border-red-200 dark:hover:border-rose-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium text-xs"
                 >
                     <Trash2 className="w-3 h-3" />
                     {t('common.delete_history', 'Delete from History')}

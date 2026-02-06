@@ -241,17 +241,17 @@ export default function Debts() {
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 layout
                             >
-                                <GlassCard className="relative overflow-hidden group">
+                                <GlassCard className="relative overflow-hidden group border border-zinc-200 dark:border-white/5 bg-white dark:bg-slate-800 backdrop-blur-none shadow-sm hover:shadow-md transition-all">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             {/* Direction Icon */}
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm border ${isIOwe ? 'bg-rose-50 text-rose-500 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'} `}>
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm border ${isIOwe ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 border-rose-100 dark:border-rose-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20'} `}>
                                                 {isIOwe ? <ArrowDownLeft size={24} strokeWidth={2.5} /> : <ArrowUpRight size={24} strokeWidth={2.5} />}
                                             </div>
 
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="font-bold text-lg text-zinc-900 leading-tight flex items-center gap-1">
+                                                    <div className="font-bold text-lg text-zinc-900 dark:text-white leading-tight flex items-center gap-1">
                                                         {debt.name}
                                                         {debt.is_linked && (
                                                             <Link
@@ -263,22 +263,22 @@ export default function Debts() {
                                                         )}
                                                     </div>
                                                     {/* Explicit Badge */}
-                                                    <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${isIOwe ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                    <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${isIOwe ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300' : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'}`}>
                                                         {isIOwe ? t('debts.i_owe') : t('debts.owes_me')}
                                                     </span>
                                                 </div>
 
                                                 {/* Partner Info */}
                                                 {(debt.linked_debt_a?.user_b || debt.linked_debt_b?.user_a) && (
-                                                    <div className="text-xs font-semibold text-indigo-600 flex items-center gap-1 mt-0.5">
+                                                    <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 mt-0.5">
                                                         <Users size={12} strokeWidth={2.5} />
                                                         {(debt.linked_debt_a?.user_b || debt.linked_debt_b?.user_a).email}
                                                     </div>
                                                 )}
 
-                                                <div className="text-xs font-medium text-zinc-400 flex items-center gap-2 mt-1">
+                                                <div className="text-xs font-medium text-zinc-400 dark:text-zinc-500 flex items-center gap-2 mt-1">
                                                     {debt.due_date && (
-                                                        <span className="flex items-center gap-1 bg-zinc-100 px-2 py-0.5 rounded-md text-zinc-600">
+                                                        <span className="flex items-center gap-1 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 px-2 py-0.5 rounded-md text-zinc-600 dark:text-zinc-400">
                                                             <Calendar size={12} strokeWidth={2.5} /> {formatDate(debt.due_date)}
                                                         </span>
                                                     )}
@@ -287,17 +287,17 @@ export default function Debts() {
                                         </div>
 
                                         <div className="text-right">
-                                            <div className={`font-black text-xl ${isIOwe ? 'text-rose-500' : 'text-emerald-600'} `}>
+                                            <div className={`font-black text-xl ${isIOwe ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'} `}>
                                                 {formatCurrency(remaining)}
                                             </div>
-                                            <div className="text-xs text-zinc-400 font-bold">
+                                            <div className="text-xs text-zinc-400 dark:text-zinc-500 font-bold">
                                                 {t('debts.of')} {formatCurrency(debt.amount)}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Progress Bar */}
-                                    <div className="h-2 bg-zinc-100 rounded-full mb-4 overflow-hidden">
+                                    <div className="h-2 bg-zinc-100 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${percent}% ` }}
@@ -306,24 +306,24 @@ export default function Debts() {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setViewHistoryDebt(debt)}
-                                            className="p-2 bg-zinc-100 rounded-lg text-zinc-400 hover:text-indigo-600"
+                                            className="p-2 bg-zinc-100 dark:bg-white/5 text-zinc-400 dark:text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors border border-transparent dark:hover:border-indigo-500/20"
                                             title={t('debts.history_title')}
                                         >
                                             <Calendar size={18} strokeWidth={2.5} />
                                         </button>
 
                                         {!debt.is_closed && (
-                                            <Button size="sm" onClick={() => setPayModalDebt(debt)} className="flex-1">
+                                            <Button size="sm" onClick={() => setPayModalDebt(debt)} className={`flex-1 ${isIOwe ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'} border-0 shadow-lg ${isIOwe ? 'shadow-rose-500/20' : 'shadow-emerald-500/20'}`}>
                                                 {isIOwe ? t('debts.pay') : t('debts.record_receipt')}
                                             </Button>
                                         )}
 
                                         <button
                                             onClick={() => handleDelete(debt.id)}
-                                            className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                                            className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition"
                                         >
                                             <Trash2 size={18} strokeWidth={2.5} />
                                         </button>

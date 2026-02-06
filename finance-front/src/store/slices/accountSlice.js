@@ -82,7 +82,8 @@ export const createAccountSlice = (set, get) => ({
 
     createCategory: async (name, type, icon = '📌', color) => {
         try {
-            const { data } = await api.post('/categories', { name, type, icon, color });
+            const finalColor = color || getRandomColor();
+            const { data } = await api.post('/categories', { name, type, icon, color: finalColor });
             set(state => ({ categories: [...state.categories, data] }));
             toast.success(i18n.t('toasts.cat_created'));
         } catch (e) {
@@ -146,7 +147,15 @@ export const createAccountSlice = (set, get) => ({
     },
 
     getCounterpartyStats: (id) => {
-        const { transactions } = get();
+        const { counterparties, transactions } = get();
+        const cp = counterparties.find(c => c.id === id);
+
+        // 1. Если есть статистика с сервера (новая логика), используем её
+        if (cp && cp.stats) {
+            return cp.stats;
+        }
+
+        // 2. Иначе считаем по загруженным транзакциям (legacy / fallback)
         const txs = transactions.filter(t => t.counterparty_id === id);
         const totalIncome = txs.filter(t => t.type === 'income' || t.type === 'transfer_in').reduce((sum, t) => sum + Number(t.amount), 0);
         const totalExpense = txs.filter(t => t.type === 'expense' || t.type === 'transfer_out').reduce((sum, t) => sum + Number(t.amount), 0);

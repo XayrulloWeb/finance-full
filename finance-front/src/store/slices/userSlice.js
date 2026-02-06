@@ -127,7 +127,7 @@ export const createUserSlice = (set, get) => ({
         set({ isLoadingNotifications: true });
         try {
             const { data } = await api.get(`/notifications?page=${page}&limit=${limit}`);
-            console.log('Fetched notifications:', data);
+
             set(state => ({
                 notifications: append ? [...state.notifications, ...data.data] : data.data,
                 hasMoreNotifications: data.data.length === limit,

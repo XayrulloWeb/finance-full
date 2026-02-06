@@ -585,7 +585,14 @@
         "cat_delete_error": "Failed to delete (may have related transactions)",
         "cats_cleared": "All categories cleared",
         "cats_clear_error": "Error clearing categories",
-        "initial_balance": "Initial Balance"
+        "initial_balance": "Initial Balance",
+        "cat_created": "Category created",
+        "cat_create_error": "Category creation error",
+        "cp_created": "Counterparty created",
+        "cp_create_error": "Counterparty creation error",
+        "cp_deleted": "Counterparty deleted",
+        "cats_restored": "Restored {{count}} categories",
+        "cats_all_exist": "All categories already exist"
     },
     "ai": {
         "forecast": {

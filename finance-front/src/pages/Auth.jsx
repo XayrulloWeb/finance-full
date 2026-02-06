@@ -91,7 +91,7 @@ export default function Auth() {
 
         } catch (err) {
             console.error("Auth error:", err);
-            console.log("Server response:", err.response?.data);
+
             const data = err.response?.data;
             let msg = data?.error || data?.message || "Ошибка соединения";
 
@@ -106,7 +106,7 @@ export default function Auth() {
                 if (data.email) setEmail(data.email);
                 setAuthMethod(data.phone ? 'phone' : 'email');
                 setIsReg(true);
-                setStep(2);  
+                setStep(2);
             } else {
                 toast.error(msg);
             }

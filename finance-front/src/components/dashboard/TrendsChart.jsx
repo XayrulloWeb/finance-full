@@ -7,10 +7,24 @@ import { useTranslation } from 'react-i18next';
 export default function TrendsChart() {
     const { t, i18n } = useTranslation();
     const [trendsPeriod, setTrendsPeriod] = useState(7);
-    const { getSpendingTrends } = useFinanceStore();
+    const { analyticsSummary, fetchAnalyticsSummary } = useFinanceStore();
     const settings = useFinanceStore(s => s.settings);
     const isDark = settings?.dark_mode;
-    const data = getSpendingTrends(trendsPeriod === 7 ? 'week' : 'month');
+
+    // Use data from analytics summary (calculated on backend)
+    // Fallback to empty array if not loaded yet
+    const rawData = analyticsSummary?.trend || [];
+
+    // Slice data based on selected period (7 or 30 days)
+    // The backend returns 30 days by default.
+    const data = rawData.slice(trendsPeriod === 7 ? -7 : -30).map(item => ({
+        ...item,
+        name: new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+    }));
+
+    // Trigger fetch if changed period and needed (though currently backend returns 30 days fixed)
+    // We handle period slicing on frontend for instant response
+
 
     // Helper for currency/number formatting
     const formatNumber = (val) => new Intl.NumberFormat(i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(val);

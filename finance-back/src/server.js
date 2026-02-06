@@ -133,10 +133,6 @@ app.listen(PORT, () => {
         environment: process.env.NODE_ENV || 'development',
         sentry: !!process.env.SENTRY_DSN
     });
-    console.log(`\n🟢 FINANCE EMPIRE SERVER STARTED`);
-    console.log(`🛡️  CORS Origin: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
-    console.log(`🚀 URL: http://localhost:${PORT}`);
-    console.log(`📅 Time: ${new Date().toLocaleString()}\n`);
     initScheduler();
 });
 

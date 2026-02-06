@@ -161,10 +161,20 @@ export default function Settings() {
       { name: t('category_names.transfers'), type: 'transfer', icon: '\u{1F504}', color: '#64748b' }
     ];
 
+    let addedCount = 0;
     for (const cat of defaultCategories) {
-      await store.createCategory(cat.name, cat.type, cat.icon, cat.color);
+      const exists = store.categories.some(c => c.name === cat.name && c.type === cat.type);
+      if (!exists) {
+        await store.createCategory(cat.name, cat.type, cat.icon, cat.color);
+        addedCount++;
+      }
     }
-    toast.success('Categories restored');
+
+    if (addedCount > 0) {
+      toast.success(t('toasts.cats_restored', { count: addedCount }));
+    } else {
+      toast.info(t('toasts.cats_all_exist'));
+    }
   };
 
   const visibleAiSuggestions = aiCategorySuggestions.filter(item => item?.name && !aiCreatedNames.includes(item.name));
@@ -701,7 +711,7 @@ export default function Settings() {
                         </div>
                         <button
                           onClick={() => store.deleteCategory(c.id)}
-                          className="p-2 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-2 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-all"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -724,7 +734,7 @@ export default function Settings() {
                         </div>
                         <button
                           onClick={() => store.deleteCategory(c.id)}
-                          className="p-2 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-2 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-all"
                         >
                           <Trash2 size={16} />
                         </button>

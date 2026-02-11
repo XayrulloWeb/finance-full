@@ -65,6 +65,49 @@ exports.getBootstrapData = async (req, res) => {
             };
         });
 
+        // Calculate Top Expenses for Bootstrap
+        const topExpensesRaw = await prisma.transaction.groupBy({
+            by: ['category_id'],
+            where: {
+                user_id: userId,
+                type: 'expense',
+                is_removed: false,
+                date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+            },
+            _sum: { amount: true },
+            orderBy: { _sum: { amount: 'desc' } },
+            take: 3
+        });
+
+        const topExpenses = await Promise.all(topExpensesRaw.map(async (item) => {
+            if (!item.category_id) return { name: 'Без категории', icon: '❓', amount: Number(item._sum.amount), percentage: 0 };
+            const category = categories.find(c => c.id === item.category_id);
+            return {
+                categoryId: item.category_id,
+                name: category?.name || 'Unknown',
+                icon: category?.icon || '❓',
+                amount: Number(item._sum.amount),
+                percentage: 0 // Will be calculated on frontend or here if needed, but let's calculate here for consistency
+            };
+        }));
+
+        // Calculate total expenses for percentage
+        const totalExpenses = await prisma.transaction.aggregate({
+            where: {
+                user_id: userId,
+                type: 'expense',
+                is_removed: false,
+                date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+            },
+            _sum: { amount: true }
+        });
+        const totalExpVal = Number(totalExpenses._sum.amount) || 0;
+
+        topExpenses.forEach(te => {
+            te.percentage = totalExpVal > 0 ? Math.round((te.amount / totalExpVal) * 100) : 0;
+        });
+
+
         res.json({
             accounts,
             categories,
@@ -75,7 +118,8 @@ exports.getBootstrapData = async (req, res) => {
             settings,
             notifications,
             counterparties: counterpartiesWithStats,
-            recentTransactions
+            recentTransactions,
+            topExpenses
         });
     } catch (error) {
         console.error('Bootstrap Error:', error);

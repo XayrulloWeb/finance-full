@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Calendar, Plus, Trash2, Zap, Clock, CheckCircle } from 'lucide-react';
+import { Calendar, Plus, Trash2, Zap, Clock, CheckCircle, ChevronLeft } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -11,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function Recurring() {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const store = useFinanceStore();
     const recurring = store.recurring;
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -69,10 +71,16 @@ export default function Recurring() {
     };
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-fade-in custom-scrollbar pb-28 sm:pb-32">
+        <div className="space-y-6 sm:space-y-8 animate-fade-in custom-scrollbar pb-36 sm:pb-40">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-zinc-900 flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 -ml-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors"
+                        >
+                            <ChevronLeft strokeWidth={3} />
+                        </button>
                         <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl"><Calendar strokeWidth={2.5} /></span>
                         {t('recurring.title')}
                     </h1>

@@ -8,7 +8,8 @@ import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import api from '../api/axios';
-import { TrendingUp, PieChart as PieIcon, Calculator, ArrowUpRight, ArrowDownRight, Wallet, Target, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { TrendingUp, PieChart as PieIcon, Calculator, ArrowUpRight, ArrowDownRight, Wallet, Target, CreditCard, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next'; // Import hook
 
@@ -60,6 +61,7 @@ const CustomTooltip = ({ active, payload, label, currency }) => {
 
 export default function Analytics() {
     const { t, i18n } = useTranslation(); // Init hook
+    const navigate = useNavigate();
     const store = useFinanceStore();
     const fetchAiAnalyticsExplanation = useFinanceStore(s => s.fetchAiAnalyticsExplanation);
     const aiAnalyticsExplanation = useFinanceStore(s => s.aiAnalyticsExplanation);
@@ -188,10 +190,16 @@ export default function Analytics() {
     };
 
     return (
-        <div className="space-y-8 sm:space-y-10 pb-28 sm:pb-32 animate-fade-in">
+        <div className="space-y-8 sm:space-y-10 pb-36 sm:pb-40 animate-fade-in">
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="mb-2 p-2 -ml-2 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-white/5"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
                     <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 to-zinc-600 mb-2">
                         {t('analytics.title')}
                     </h1>

@@ -13,7 +13,12 @@ export const createFinanceSlice = (set, get) => ({
 
     addGoal: async (form) => {
         try {
-            const { data } = await api.post('/goals', form);
+            const payload = {
+                ...form,
+                target_amount: Number(form.target_amount),
+                deadline: form.deadline ? new Date(form.deadline).toISOString() : undefined
+            };
+            const { data } = await api.post('/goals', payload);
             set(state => ({ goals: [...state.goals, data] }));
             toast.success('Цель создана');
         } catch (e) {
@@ -37,7 +42,7 @@ export const createFinanceSlice = (set, get) => ({
 
         try {
             // Бэкенд сам спишет деньги и обновит цель
-            const { data } = await api.post(`/goals/${goalId}/topup`, { amount, accountId });
+            const { data } = await api.post(`/goals/${goalId}/topup`, { amount: Number(amount), accountId });
 
             // Обновляем цель в списке
             set(state => ({
@@ -63,7 +68,8 @@ export const createFinanceSlice = (set, get) => ({
                 name: form.name,
                 amount: Number(form.amount),
                 type: form.type,
-                due_date: form.due_date || null
+                due_date: form.due_date || undefined,
+                account_id: form.account_id || null
             };
             const { data } = await api.post('/debts', payload);
             set(state => ({ debts: [data, ...state.debts] }));
@@ -112,7 +118,7 @@ export const createFinanceSlice = (set, get) => ({
     saveBudget: async (categoryId, amount) => {
         try {
             // Upsert логика на бэкенде
-            const { data } = await api.post('/budgets', { category_id: categoryId, amount });
+            const { data } = await api.post('/budgets', { category_id: categoryId, amount: Number(amount) });
 
             set(state => {
                 const existingIndex = state.budgets.findIndex(b => b.category_id === categoryId);

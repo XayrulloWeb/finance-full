@@ -25,6 +25,7 @@ export const useFinanceStore = create((set, get) => ({
   ...createDebtRequestSlice(set, get),
 
   analyticsSummary: null,
+  topExpenses: [],
   isAnalyticsSummaryLoading: false,
 
   fetchAnalyticsSummary: async () => {
@@ -114,6 +115,7 @@ export const useFinanceStore = create((set, get) => ({
         settings: data.settings || get().settings,
         notifications: data.notifications || [],
         counterparties: data.counterparties || [],
+        topExpenses: data.topExpenses || [],
         unreadNotifications: (data.notifications || []).filter(n => !n.is_read).length
       });
 

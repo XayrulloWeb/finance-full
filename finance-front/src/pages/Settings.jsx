@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Trash2, Plus, LogOut, User, Wallet, Tag, Shield, Download, Upload, Globe, ChevronRight, Zap, RefreshCw, Sparkles, Bell } from 'lucide-react';
+import { Trash2, Plus, LogOut, User, Wallet, Tag, Shield, Download, Upload, Globe, ChevronRight, Zap, RefreshCw, Sparkles, Bell, ChevronLeft } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -78,6 +79,7 @@ export default function Settings() {
   const aiCategorySuggestions = useFinanceStore(s => s.aiCategorySuggestions);
   const isAiCategoriesLoading = useFinanceStore(s => s.isAiCategoriesLoading);
   const { t, i18n } = useTranslation(); // Init hook
+  const navigate = useNavigate();
 
   // Tabs State
   const [activeTab, setActiveTab] = useState('general'); // general, accounts, categories, data
@@ -220,11 +222,17 @@ export default function Settings() {
   ];
 
   return (
-    <div className="space-y-8 sm:space-y-10 animate-fade-in pb-32 custom-scrollbar max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-8 sm:space-y-10 animate-fade-in pb-36 sm:pb-40 custom-scrollbar">
 
       {/* --- HEADER PROFILE SECTION --- */}
       {/* ... (keep existing header code but maybe translate "Premium Member" later) ... */}
       <section className="relative overflow-hidden rounded-[2.5rem] bg-indigo-600 shadow-2xl shadow-indigo-900/20 text-white p-6 sm:p-8 lg:p-12 mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-6 left-6 z-20 p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl text-white transition-colors"
+        >
+          <ChevronLeft size={24} />
+        </button>
         {/* ... (background decoration) ... */}
         <div className="pointer-events-none absolute inset-0 z-0">
           <div className="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500 rounded-full blur-3xl opacity-50" />

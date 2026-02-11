@@ -133,7 +133,7 @@ export default function Calendar() {
 
 
     return (
-        <div className="animate-fade-in pb-28 sm:pb-32 space-y-6 sm:space-y-8">
+        <div className="animate-fade-in pb-36 sm:pb-40 space-y-6 sm:space-y-8">
             <div className="flex justify-between items-center mb-6 px-1">
                 <h1 className="text-3xl font-black text-zinc-900 flex items-center gap-3">
                     <CalendarIcon className="text-indigo-600" size={32} strokeWidth={2.5} />

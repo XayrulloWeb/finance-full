@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Bell, Check, Trash2, Info, AlertTriangle, CheckCircle, Loader } from 'lucide-react';
+import { Bell, Check, Trash2, Info, AlertTriangle, CheckCircle, Loader, ChevronLeft } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -11,6 +12,7 @@ import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 export default function Notifications() {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const {
         notifications,
         markNotificationRead,
@@ -68,10 +70,16 @@ export default function Notifications() {
     const lastElementRef = useInfiniteScroll(loadMore, hasMoreNotifications, isLoadingNotifications);
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-32">
+        <div className="space-y-6 sm:space-y-8 animate-fade-in pb-36 sm:pb-40">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-zinc-900 flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 -ml-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors"
+                        >
+                            <ChevronLeft strokeWidth={3} />
+                        </button>
                         <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl"><Bell strokeWidth={2.5} /></span>
                         {t('notifications.title')}
                     </h1>

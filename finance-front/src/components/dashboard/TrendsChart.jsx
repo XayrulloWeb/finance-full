@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
-import GlassCard from '../ui/GlassCard';
+import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, Area, AreaChart } from 'recharts';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { useTranslation } from 'react-i18next';
 
@@ -11,36 +10,35 @@ export default function TrendsChart() {
     const settings = useFinanceStore(s => s.settings);
     const isDark = settings?.dark_mode;
 
-    // Use data from analytics summary (calculated on backend)
-    // Fallback to empty array if not loaded yet
     const rawData = analyticsSummary?.trend || [];
-
-    // Slice data based on selected period (7 or 30 days)
-    // The backend returns 30 days by default.
     const data = rawData.slice(trendsPeriod === 7 ? -7 : -30).map(item => ({
         ...item,
         name: new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
     }));
 
-    // Trigger fetch if changed period and needed (though currently backend returns 30 days fixed)
-    // We handle period slicing on frontend for instant response
-
-
-    // Helper for currency/number formatting
     const formatNumber = (val) => new Intl.NumberFormat(i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(val);
 
     return (
         <section>
-            <div className="flex justify-between items-center mb-4 px-1">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">📈 {t('dashboard.trends.title')}</h2>
-                <div className="flex gap-2 rounded-xl p-1 border border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm">
+            <div className="flex justify-between items-center mb-5 px-1">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500/10 text-base">📈</span>
+                    {t('dashboard.trends.title')}
+                </h2>
+                <div
+                    className="flex gap-1 rounded-2xl p-1 border border-zinc-200/60 dark:border-white/8"
+                    style={{
+                        background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+                        backdropFilter: 'blur(20px)',
+                    }}
+                >
                     {[7, 30].map(period => (
                         <button
                             key={period}
                             onClick={() => setTrendsPeriod(period)}
-                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${trendsPeriod === period
-                                ? 'bg-violet-600 text-white shadow-sm'
-                                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${trendsPeriod === period
+                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30'
+                                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
                                 }`}
                         >
                             {period} {t('analytics.days_suffix')}
@@ -48,57 +46,81 @@ export default function TrendsChart() {
                     ))}
                 </div>
             </div>
-            <GlassCard className="p-6">
-                <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={data}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d2d3a' : '#e4e4e7'} />
-                        <XAxis
-                            dataKey="name"
-                            stroke={isDark ? '#6b6b80' : '#71717a'}
-                            style={{ fontSize: '11px', fontWeight: 'bold' }}
-                        />
-                        <YAxis
-                            stroke={isDark ? '#6b6b80' : '#71717a'}
-                            style={{ fontSize: '11px', fontWeight: 'bold' }}
-                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                        />
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: isDark ? '#16161f' : 'white',
-                                border: isDark ? '1px solid #2d2d3a' : '1px solid #e4e4e7',
-                                borderRadius: '12px',
-                                boxShadow: isDark ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                                fontSize: '12px',
-                                fontWeight: 'bold',
-                                color: isDark ? '#eeeef2' : '#0f172a'
-                            }}
-                            formatter={(value) => formatNumber(value)}
-                        />
-                        <Legend
-                            wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', color: isDark ? '#eeeef2' : '#0f172a' }}
-                            iconType="line"
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="income"
-                            name={t('dashboard.stats.income')}
-                            stroke="#10b981"
-                            strokeWidth={3}
-                            dot={{ fill: '#10b981', r: 4 }}
-                            activeDot={{ r: 6 }}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="expense"
-                            name={t('dashboard.stats.expense')}
-                            stroke="#ef4444"
-                            strokeWidth={3}
-                            dot={{ fill: '#ef4444', r: 4 }}
-                            activeDot={{ r: 6 }}
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </GlassCard>
+            <div
+                className="glass-panel relative overflow-hidden p-5 sm:p-6"
+            >
+                {/* Subtle gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/3 to-cyan-500/3 dark:from-violet-500/5 dark:to-cyan-500/5 rounded-3xl" />
+
+                <div className="relative z-10">
+                    <ResponsiveContainer width="100%" height={250}>
+                        <AreaChart data={data}>
+                            <defs>
+                                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.02} />
+                                </linearGradient>
+                                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3} />
+                                    <stop offset="100%" stopColor="#ef4444" stopOpacity={0.02} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
+                            <XAxis
+                                dataKey="name"
+                                stroke={isDark ? '#6b6b80' : '#a1a1aa'}
+                                style={{ fontSize: '11px', fontWeight: '600' }}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <YAxis
+                                stroke={isDark ? '#6b6b80' : '#a1a1aa'}
+                                style={{ fontSize: '11px', fontWeight: '600' }}
+                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: isDark ? 'rgba(15, 15, 22, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+                                    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
+                                    borderRadius: '16px',
+                                    boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold',
+                                    color: isDark ? '#eeeef2' : '#0f172a',
+                                    backdropFilter: 'blur(20px)',
+                                }}
+                                formatter={(value) => formatNumber(value)}
+                            />
+                            <Legend
+                                wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', color: isDark ? '#eeeef2' : '#0f172a' }}
+                                iconType="circle"
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="income"
+                                name={t('dashboard.stats.income')}
+                                stroke="#10b981"
+                                strokeWidth={2.5}
+                                fill="url(#incomeGrad)"
+                                dot={false}
+                                activeDot={{ r: 5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="expense"
+                                name={t('dashboard.stats.expense')}
+                                stroke="#ef4444"
+                                strokeWidth={2.5}
+                                fill="url(#expenseGrad)"
+                                dot={false}
+                                activeDot={{ r: 5, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
         </section>
     );
 }

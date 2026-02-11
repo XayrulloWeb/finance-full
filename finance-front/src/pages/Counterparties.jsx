@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import CounterpartyCard from '../components/CounterpartyCard';
 import CounterpartyModal from '../components/CounterpartyModal';
-import { Plus, Search, Star } from 'lucide-react';
+import { Plus, Search, Star, ChevronLeft } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useTranslation } from 'react-i18next'; // Import hook
+import { useNavigate } from 'react-router-dom';
 
 export default function Counterparties() {
     const { t } = useTranslation(); // Init hook
+    const navigate = useNavigate();
     const { counterparties, createCounterparty, updateCounterparty } = useFinanceStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCounterparty, setEditingCounterparty] = useState(null);
@@ -47,11 +49,19 @@ export default function Counterparties() {
     const regularCounterparties = filteredCounterparties.filter(cp => !cp.favorite);
 
     return (
-        <div className="max-w-7xl mx-auto pb-28 sm:pb-32 space-y-8 animate-fade-in custom-scrollbar">
+        <div className="max-w-7xl mx-auto pb-36 sm:pb-40 space-y-8 animate-fade-in custom-scrollbar">
             {/* Заголовок и поиск */}
             <div className="mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white">📇 {t('counterparties.title')}</h1>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 -ml-2 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-white/5"
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+                        <h1 className="text-3xl font-black text-zinc-900 dark:text-white">📇 {t('counterparties.title')}</h1>
+                    </div>
                     <Button
                         onClick={handleAdd}
                         icon={Plus}

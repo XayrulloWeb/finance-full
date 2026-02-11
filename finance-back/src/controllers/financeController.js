@@ -146,23 +146,61 @@ exports.createDebt = async (req, res) => {
 
         await ensureOptionalCounterpartyOwnership(req.user.id, counterparty_id, prisma);
 
-        const debt = await prisma.debt.create({
-            data: {
-                name: name.trim(),
-                type,
-                notes: notes || null,
-                amount: valAmount,
-                paid_amount: valPaid,
-                due_date: parsedDueDate,
-                counterparty_id: counterparty_id || null,
-                user_id: req.user.id
+        // В транзакции создаем долг и, если выбран счет, обновляем баланс
+        const result = await prisma.$transaction(async (tx) => {
+            const debt = await tx.debt.create({
+                data: {
+                    name: name.trim(),
+                    type,
+                    notes: notes || null,
+                    amount: valAmount,
+                    paid_amount: valPaid,
+                    due_date: parsedDueDate,
+                    counterparty_id: counterparty_id || null, // Здесь может быть null
+                    user_id: req.user.id
+                }
+            });
+
+            // Если указан счет, создаем транзакцию и обновляем баланс
+            if (req.body.account_id) {
+                const accountId = req.body.account_id;
+                await ensureAccountOwnership(req.user.id, accountId, tx);
+
+                // Логика:
+                // i_owe (Я должен) -> Мне дали деньги -> Income (Приход на счет)
+                // owes_me (Мне должны) -> Я дал деньги -> Expense (Уход со счета)
+                const txType = type === 'i_owe' ? 'income' : 'expense';
+
+                if (txType === 'expense') {
+                    await BalanceService.updateBalanceChecked(tx, accountId, valAmount, txType);
+                } else {
+                    await BalanceService.updateBalance(tx, accountId, valAmount, txType);
+                }
+
+                await tx.transaction.create({
+                    data: {
+                        user_id: req.user.id,
+                        account_id: accountId,
+                        amount: valAmount,
+                        type: txType,
+                        comment: `Долг: ${name}`,
+                        date: new Date(),
+                        // Опционально можно связать транзакцию с долгом, если бы было поле debt_id в транзакциях
+                    }
+                });
             }
+
+            return debt;
         });
-        res.json(debt);
+
+        res.json(result);
     } catch (error) {
         console.error('Create Debt Error:', error);
         if (error.code === 'NOT_FOUND') {
             return res.status(404).json({ error: error.message });
+        }
+        if (error.title === 'Insufficient Funds' || error.message === 'Insufficient balance') {
+            return res.status(400).json({ error: 'Insufficient balance' });
         }
         res.status(500).json({ error: error.message });
     }
@@ -273,8 +311,13 @@ exports.payDebt = async (req, res) => {
 // --- BUDGETS ---
 exports.upsertBudget = async (req, res) => {
     const { category_id, amount } = req.body;
-    try {
+    const valAmount = Number(amount);
 
+    if (!valAmount || valAmount <= 0) {
+        return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    try {
         // Сначала ищем существующий
         const existing = await prisma.budget.findFirst({
             where: { user_id: req.user.id, category_id: category_id, period: 'month' }

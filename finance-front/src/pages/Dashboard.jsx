@@ -36,7 +36,7 @@ export default function Dashboard() {
     const aiForecast = useFinanceStore(s => s.aiForecast);
     const isAiForecastLoading = useFinanceStore(s => s.isAiForecastLoading);
 
-    const getTopExpenseCategories = useFinanceStore(s => s.getTopExpenseCategories);
+    const topExpenses = useFinanceStore(s => s.topExpenses);
     const getAccountBalance = useFinanceStore(s => s.getAccountBalance);
 
     useEffect(() => {
@@ -70,7 +70,13 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="space-y-8 sm:space-y-10 animate-fade-in pb-40 sm:pb-48">
+        <div className="relative overflow-hidden space-y-8 sm:space-y-10 animate-fade-in pb-40 sm:pb-48">
+
+            {/* Ambient Floating Orbs — Violet theme */}
+            <div className="ambient-orb w-72 h-72 bg-violet-500/25 -top-20 -left-20" style={{ animationDelay: '0s' }} />
+            <div className="ambient-orb w-96 h-96 bg-purple-500/15 top-1/4 -right-32" style={{ animationDelay: '5s' }} />
+            <div className="ambient-orb w-64 h-64 bg-violet-600/15 bottom-1/3 -left-16" style={{ animationDelay: '10s' }} />
+            <div className="ambient-orb w-80 h-80 bg-indigo-500/10 -bottom-20 right-1/4" style={{ animationDelay: '15s' }} />
 
             <SmartAlerts />
             <BalanceCard />
@@ -97,12 +103,15 @@ export default function Dashboard() {
 
             {/* Top Expense Categories */}
             <section>
-                <div className="flex justify-between items-center mb-4 px-1">
-                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">🔥 {t('analytics.top_expenses')}</h2>
+                <div className="flex justify-between items-center mb-5 px-1">
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-rose-500/10 text-base">🔥</span>
+                        {t('analytics.top_expenses')}
+                    </h2>
                 </div>
                 <GlassCard>
                     <div className="space-y-4">
-                        {getTopExpenseCategories(3).map((cat, idx) => (
+                        {topExpenses.map((cat, idx) => (
                             <div key={idx} className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -123,7 +132,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         ))}
-                        {getTopExpenseCategories(3).length === 0 && <div className="text-center text-zinc-400 py-4 font-medium">{t('analytics.no_expenses')}</div>}
+                        {topExpenses.length === 0 && <div className="text-center text-zinc-400 py-4 font-medium">{t('analytics.no_expenses')}</div>}
                     </div>
                 </GlassCard>
             </section>
@@ -133,8 +142,11 @@ export default function Dashboard() {
 
             {/* Accounts List */}
             <section>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4 px-1 flex gap-2">
-                    <CreditCard className="text-primary" strokeWidth={2.5} /> {t('settings.accounts')}
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-5 px-1 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/10">
+                        <CreditCard className="text-indigo-500" size={18} strokeWidth={2.5} />
+                    </span>
+                    {t('settings.accounts')}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {accounts.map((acc) => (
@@ -186,7 +198,10 @@ export default function Dashboard() {
 
             {/* Recent Transactions */}
             <section>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4 px-1">{t('dashboard.recent_activity')}</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-5 px-1 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-violet-500/10 text-base">🕐</span>
+                    {t('dashboard.recent_activity')}
+                </h2>
                 <div className="space-y-3">
                     {recentTransactions.length > 0 ? (
                         recentTransactions.map(t => (

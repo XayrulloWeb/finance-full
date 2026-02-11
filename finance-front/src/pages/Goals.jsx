@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Plus, Target, Trophy, Clock, DollarSign, Trash2 } from 'lucide-react';
+import { Plus, Target, Trophy, Clock, DollarSign, Trash2, ChevronLeft } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -11,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { differenceInDays } from 'date-fns';
 export default function Goals() {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const { goals, addGoal, deleteGoal, addMoneyToGoal, accounts, settings } = useFinanceStore();
     const fetchAiGoalsAdvice = useFinanceStore(s => s.fetchAiGoalsAdvice);
     const aiGoalsAdvice = useFinanceStore(s => s.aiGoalsAdvice);
@@ -80,10 +83,16 @@ export default function Goals() {
     }, [fetchAiGoalsAdvice]);
 
     return (
-        <div className="space-y-8 sm:space-y-10 animate-fade-in pb-28 sm:pb-32 custom-scrollbar">
+        <div className="max-w-7xl mx-auto space-y-8 pb-36 sm:pb-40 animate-fade-in custom-scrollbar">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-zinc-900 flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 -ml-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors"
+                        >
+                            <ChevronLeft strokeWidth={3} />
+                        </button>
                         <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl"><Target strokeWidth={2.5} /></span>
                         {t('goals.title')}
                     </h1>

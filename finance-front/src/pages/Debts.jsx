@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Plus, Trash2, CheckCircle, ArrowUpRight, ArrowDownLeft, Calendar, User, Wallet, Users, Link } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, ArrowUpRight, ArrowDownLeft, Calendar, User, Wallet, Users, Link, ChevronLeft } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import SkeletonLoader from '../components/ui/SkeletonLoader';
 import Button from '../components/ui/Button';
@@ -16,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function Debts() {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const { debts, addDebt, payDebt, deleteDebt, accounts } = useFinanceStore();
     const fetchAiDebtsAdvice = useFinanceStore(s => s.fetchAiDebtsAdvice);
     const aiDebtsAdvice = useFinanceStore(s => s.aiDebtsAdvice);
@@ -60,14 +62,14 @@ export default function Debts() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const [form, setForm] = useState({ name: '', amount: '', type: 'i_owe', due_date: '', contact_phone: '' });
+    const [form, setForm] = useState({ name: '', amount: '', type: 'i_owe', due_date: '', contact_phone: '', account_id: '' });
 
     const handleCreate = async () => {
         if (!form.name || !form.amount) return;
 
         await addDebt(form);
         setIsCreateModalOpen(false);
-        setForm({ name: '', amount: '', type: 'i_owe', due_date: '', contact_phone: '' });
+        setForm({ name: '', amount: '', type: 'i_owe', due_date: '', contact_phone: '', account_id: '' });
         toast.success(t('debts.toast_added'));
     };
 
@@ -119,10 +121,16 @@ export default function Debts() {
     const totalOwesMe = debts.filter(d => !d.is_closed && d.type === 'owes_me').reduce((sum, d) => sum + (d.amount - d.paid_amount), 0);
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-fade-in custom-scrollbar pb-28 sm:pb-32">
+        <div className="max-w-7xl mx-auto space-y-8 pb-36 sm:pb-40 animate-fade-in custom-scrollbar">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 -ml-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors"
+                        >
+                            <ChevronLeft strokeWidth={3} />
+                        </button>
                         <span className="p-2 bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 rounded-xl"><Wallet strokeWidth={2.5} /></span>
                         {t('debts.title')}
                     </h1>
@@ -389,6 +397,25 @@ export default function Debts() {
                             value={form.due_date}
                             onChange={e => setForm({ ...form, due_date: e.target.value })}
                         />
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1 block uppercase">{t('debts.account_label')}</label>
+                        <select
+                            className="w-full p-4 bg-white dark:bg-slate-800 border border-zinc-200 dark:border-white/10 rounded-xl font-bold outline-none text-zinc-900 dark:text-white shadow-sm transition-colors"
+                            value={form.account_id}
+                            onChange={(e) => setForm({ ...form, account_id: e.target.value })}
+                        >
+                            <option value="">{t('debts.no_account_selected')}</option>
+                            {accounts.map(acc => (
+                                <option key={acc.id} value={acc.id}>{acc.name} ({formatCurrency(acc.balance)})</option>
+                            ))}
+                        </select>
+                        <div className="text-[10px] text-zinc-400 mt-1 px-1">
+                            {form.type === 'i_owe'
+                                ? t('debts.account_hint_income', 'Money will be added to this account')
+                                : t('debts.account_hint_expense', 'Money will be deducted from this account')}
+                        </div>
                     </div>
 
                     <Button onClick={handleCreate} className="w-full py-4 text-lg bg-primary hover:bg-primary/90">{t('debts.create_btn')}</Button>

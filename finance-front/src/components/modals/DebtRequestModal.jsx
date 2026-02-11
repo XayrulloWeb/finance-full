@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Send, Loader, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { useTranslation } from 'react-i18next';
@@ -74,8 +75,8 @@ export default function DebtRequestModal({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar border border-zinc-200 dark:border-white/10">
                 {/* Header */}
                 <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/10 px-6 py-4 flex items-center justify-between z-10">
@@ -268,6 +269,7 @@ export default function DebtRequestModal({ isOpen, onClose }) {
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
-import { Filter, X, Search, ArrowUpDown, Calendar, CreditCard, Tag, Loader, ChevronDown } from 'lucide-react';
+import { Filter, X, Search, ArrowUpDown, Calendar, CreditCard, Tag, Loader, ChevronDown, ChevronLeft } from 'lucide-react';
 import TransactionItem from '../components/TransactionItem';
 import GlassCard from '../components/ui/GlassCard';
 import Button from '../components/ui/Button';
@@ -14,6 +15,7 @@ import { useTranslation } from 'react-i18next'; // Import hook
 
 export default function History() {
     const { t, i18n } = useTranslation(); // Init hook
+    const navigate = useNavigate();
 
     // Mapping for date-fns locales
     const dateLocales = {
@@ -106,16 +108,24 @@ export default function History() {
     const parentRef = useRef(null);
     const rowVirtualizer = useVirtualizer({
         count: flattenedData.length,
-        getScrollElement: () => parentRef.current,
+        getScrollElement: () => document.querySelector('main'),
         estimateSize: (index) => flattenedData[index].type === 'header' ? 55 : 95,
         overscan: 5,
     });
 
     return (
-        <div className="max-w-4xl mx-auto pb-28 sm:pb-32 animate-fade-in custom-scrollbar h-[calc(100vh-100px)] flex flex-col">
+        <div className="max-w-4xl mx-auto animate-fade-in flex flex-col pb-36 sm:pb-40" >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 px-1">
                 <div>
-                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white">{t('history.title')}</h1>
+                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 -ml-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors"
+                        >
+                            <ChevronLeft strokeWidth={3} />
+                        </button>
+                        {t('history.title')}
+                    </h1>
                     <p className="text-zinc-500 dark:text-zinc-400">{t('history.subtitle')}</p>
                 </div>
                 <Button
@@ -207,7 +217,7 @@ export default function History() {
                 )}
             </AnimatePresence>
 
-            <div ref={parentRef} className="flex-grow min-h-0 mt-4 custom-scrollbar" style={{ overflowY: 'auto' }}>
+            <div ref={parentRef} className="flex-grow min-h-0 mt-4">
                 {transactions.length > 0 ? (
                     <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
                         {rowVirtualizer.getVirtualItems().map((virtualItem) => {
@@ -243,11 +253,11 @@ export default function History() {
             </div>
 
             {/* Infinite Scroll Loader & Sentinel */}
-            <div ref={lastElementRef} className="py-4 flex justify-center w-full">
+            <div ref={lastElementRef} className="py-4 flex justify-center w-full" >
                 {isLoadingTransactions && <Loader className="animate-spin text-indigo-500" size={24} />}
-            </div>
+            </div >
 
             <TransactionModal isOpen={!!editingTransaction} onClose={() => setEditingTransaction(null)} editingTransaction={editingTransaction} />
-        </div>
+        </div >
     );
 }

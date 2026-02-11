@@ -100,6 +100,7 @@ const goalSchema = z.object({
 
 // Debt schemas
 const debtSchema = z.object({
+    account_id: z.string().uuid().optional().nullable(),
     counterparty_id: z.string().uuid().optional().nullable(),
     name: z.string().min(1, { message: "Введите название долга" }).max(100),
     amount: z.number().positive().max(1e10),

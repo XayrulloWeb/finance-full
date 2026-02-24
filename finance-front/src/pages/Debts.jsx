@@ -240,6 +240,7 @@ export default function Debts() {
                         const remaining = debt.amount - debt.paid_amount;
                         const percent = (debt.paid_amount / debt.amount) * 100;
                         const isIOwe = debt.type === 'i_owe';
+                        const linkedPartner = debt.linked_debt_a?.user_b ?? debt.linked_debt_b?.user_a;
 
                         return (
                             <motion.div
@@ -277,10 +278,10 @@ export default function Debts() {
                                                 </div>
 
                                                 {/* Partner Info */}
-                                                {(debt.linked_debt_a?.user_b || debt.linked_debt_b?.user_a) && (
+                                                {linkedPartner && (
                                                     <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 mt-0.5">
                                                         <Users size={12} strokeWidth={2.5} />
-                                                        {(debt.linked_debt_a?.user_b || debt.linked_debt_b?.user_a).email}
+                                                        {linkedPartner.email}
                                                     </div>
                                                 )}
 

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { toast } from '../components/ui/Toast';
-import * as XLSX from 'xlsx';
 import api from '../api/axios'; // Твой настроенный axios instance
 import i18n from '../i18n';
 
@@ -159,9 +158,10 @@ export const useFinanceStore = create((set, get) => ({
   },
 
   // 4. Экспорт (Остается на клиенте, так как данные уже в стейте)
-  exportDataToExcel: () => {
+  exportDataToExcel: async () => {
     const { transactions, accounts, debts, categories, counterparties } = get();
     try {
+      const XLSX = await import('xlsx');
       const txSheet = XLSX.utils.json_to_sheet(transactions);
       const accSheet = XLSX.utils.json_to_sheet(accounts);
       const debtSheet = XLSX.utils.json_to_sheet(debts);

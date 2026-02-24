@@ -79,10 +79,17 @@ app.use(express.json({ limit: '10mb' }));
 
 // Logging Middleware
 app.use(morgan('combined', {
+    skip: (req) => req.path.startsWith('/socket.io'),
     stream: {
         write: (message) => logger.info(message.trim())
     }
 }));
+
+// Some clients/extensions may poll Socket.IO path even if app does not use it.
+// Return 204 and skip logging to avoid noisy 404 spam.
+app.use('/socket.io', (req, res) => {
+    res.status(204).end();
+});
 
 const routes = require('./routes');
 const initScheduler = require('./cron/scheduler');

@@ -20,6 +20,7 @@ exports.getDashboard = async (req, res) => {
 exports.getBootstrapData = async (req, res) => {
     try {
         const userId = req.user.id;
+        const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
         const [accounts, categories, budgets, debts, goals, recurring, settings, notifications, counterparties, recentTransactions] = await Promise.all([
             prisma.account.findMany({ where: { user_id: userId, is_hidden: false }, orderBy: { name: 'asc' } }),
@@ -72,7 +73,8 @@ exports.getBootstrapData = async (req, res) => {
                 user_id: userId,
                 type: 'expense',
                 is_removed: false,
-                date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+                date: { gte: monthStart },
+                category_id: { not: null }
             },
             _sum: { amount: true },
             orderBy: { _sum: { amount: 'desc' } },
@@ -97,7 +99,8 @@ exports.getBootstrapData = async (req, res) => {
                 user_id: userId,
                 type: 'expense',
                 is_removed: false,
-                date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+                date: { gte: monthStart },
+                category_id: { not: null }
             },
             _sum: { amount: true }
         });
@@ -339,7 +342,8 @@ exports.getInsights = async (req, res) => {
                 user_id: userId,
                 type: 'expense',
                 is_removed: false,
-                date: { gte: currentMonthStart }
+                date: { gte: currentMonthStart },
+                category_id: { not: null }
             },
             _sum: { amount: true },
             orderBy: {

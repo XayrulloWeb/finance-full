@@ -6,10 +6,13 @@ import { useTranslation } from 'react-i18next';
 
 export default function SmartAlerts() {
     const { t } = useTranslation();
-    const store = useFinanceStore();
     const fetchAiAlerts = useFinanceStore(s => s.fetchAiAlerts);
     const aiAlerts = useFinanceStore(s => s.aiAlerts);
     const isAiAlertsLoading = useFinanceStore(s => s.isAiAlertsLoading);
+    const budgets = useFinanceStore(s => s.budgets);
+    const accounts = useFinanceStore(s => s.accounts);
+    const getBudgetProgress = useFinanceStore(s => s.getBudgetProgress);
+    const getAccountBalance = useFinanceStore(s => s.getAccountBalance);
 
     useEffect(() => {
         if (!aiAlerts || aiAlerts.length === 0) {
@@ -35,8 +38,8 @@ export default function SmartAlerts() {
         });
 
         // Budget alerts
-        store.budgets.forEach(budget => {
-            const progress = store.getBudgetProgress(budget.category_id);
+        budgets.forEach(budget => {
+            const progress = getBudgetProgress(budget.category_id);
             if (progress && progress.percent > 100) {
                 alerts.push({
                     type: 'danger',
@@ -49,7 +52,7 @@ export default function SmartAlerts() {
         });
 
         // Negative balance alerts
-        const negativeAccounts = store.accounts.filter(acc => store.getAccountBalance(acc.id) < 0);
+        const negativeAccounts = accounts.filter(acc => getAccountBalance(acc.id) < 0);
         if (negativeAccounts.length > 0) {
             alerts.push({
                 type: 'danger',
@@ -98,11 +101,8 @@ export default function SmartAlerts() {
                         transition={{ delay: idx * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
                         <div
-                            className={`relative overflow-hidden rounded-2xl p-4 border cursor-pointer transition-all ${style.bg} ${style.border} backdrop-blur-xl hover:scale-[1.01] active:scale-[0.99]`}
-                            style={{
-                                backdropFilter: 'blur(20px) saturate(180%)',
-                                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                            }}
+                            className={`relative overflow-hidden rounded-2xl p-4 border cursor-pointer transition-all ${style.bg} ${style.border} backdrop-blur-sm md:backdrop-blur-xl hover:scale-[1.01] active:scale-[0.99]`}
+                            style={{ boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
                             onClick={alert.action || undefined}
                         >
                             <div className="flex items-start gap-3">

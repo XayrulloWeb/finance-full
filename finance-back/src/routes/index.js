@@ -65,6 +65,7 @@ router.get('/notifications/unread-count', authMiddleware, userLimiter, dataContr
 router.post('/notifications/read-all', authMiddleware, userLimiter, dataController.markAllNotificationsRead);
 router.post('/notifications/:id/read', authMiddleware, userLimiter, dataController.markNotificationRead);
 router.get('/insights', authMiddleware, userLimiter, dataController.getInsights);
+router.get('/insights/smart', authMiddleware, userLimiter, dataController.getAiInsight);
 router.get('/analytics/summary', authMiddleware, userLimiter, dataController.getAnalyticsSummary);
 router.get('/calendar/summary', authMiddleware, userLimiter, dataController.getCalendarSummary);
 router.get('/data/bootstrap', authMiddleware, userLimiter, dataController.getBootstrapData);

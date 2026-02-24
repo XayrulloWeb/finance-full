@@ -16,8 +16,10 @@ export default function TransactionItem({ transaction, category, account, counte
     const { t, i18n } = useTranslation();
     const { deleteTransaction } = useFinanceStore();
     const isExpense = transaction.type === 'expense' || transaction.type === 'transfer_out';
-    const isIncome = transaction.type === 'income' || transaction.type === 'transfer_in';
     const isTransfer = transaction.type.includes('transfer');
+    const title = isTransfer
+        ? t('transaction_item.transfer')
+        : (category?.name || counterparty?.name || transaction.comment || t('transaction_item.uncategorized'));
 
     const currentLocale = locales[i18n.language] || ru;
 
@@ -111,9 +113,7 @@ export default function TransactionItem({ transaction, category, account, counte
                         {/* DETAILS */}
                         <div className="min-w-0">
                             <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-base leading-tight mb-0.5">
-                                {isTransfer
-                                    ? t('transaction_item.transfer')
-                                    : (category?.name || (counterparty ? counterparty.name : t('transaction_item.uncategorized')))}
+                                {title}
                             </div>
 
                             <div className="flex items-center gap-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">

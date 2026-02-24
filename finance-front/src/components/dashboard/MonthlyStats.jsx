@@ -6,17 +6,16 @@ import { useTranslation } from 'react-i18next';
 
 export default function MonthlyStats() {
     const { t, i18n } = useTranslation();
-    const store = useFinanceStore();
-    const isPrivacy = store.settings.is_privacy_enabled;
+    const isPrivacy = useFinanceStore(s => s.settings.is_privacy_enabled);
+    const analyticsSummary = useFinanceStore(s => s.analyticsSummary);
+    const getBudgetCompletion = useFinanceStore(s => s.getBudgetCompletion);
 
     const formatNumber = (val) => new Intl.NumberFormat(i18n.language === 'ru' ? 'ru-RU' : 'en-US').format(Math.round(val));
-
-    const { analyticsSummary, isAnalyticsSummaryLoading } = store;
 
     const income = analyticsSummary?.totals?.income || 0;
     const expense = analyticsSummary?.totals?.expense || 0;
     const balance = analyticsSummary?.totals?.savings || 0;
-    const budgetCompletion = store.getBudgetCompletion();
+    const budgetCompletion = getBudgetCompletion();
 
     const stats = [
         {

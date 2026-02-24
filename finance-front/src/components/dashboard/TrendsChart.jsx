@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, Area, AreaChart } from 'recharts';
+import { ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { useTranslation } from 'react-i18next';
 
 export default function TrendsChart() {
     const { t, i18n } = useTranslation();
     const [trendsPeriod, setTrendsPeriod] = useState(7);
-    const { analyticsSummary, fetchAnalyticsSummary } = useFinanceStore();
-    const settings = useFinanceStore(s => s.settings);
-    const isDark = settings?.dark_mode;
+    const analyticsSummary = useFinanceStore(s => s.analyticsSummary);
+    const isDark = useFinanceStore(s => s.settings?.dark_mode);
 
     const rawData = analyticsSummary?.trend || [];
     const data = rawData.slice(trendsPeriod === 7 ? -7 : -30).map(item => ({
@@ -26,10 +25,9 @@ export default function TrendsChart() {
                     {t('dashboard.trends.title')}
                 </h2>
                 <div
-                    className="flex gap-1 rounded-2xl p-1 border border-zinc-200/60 dark:border-white/8"
+                    className="flex gap-1 rounded-2xl p-1 border border-zinc-200/60 dark:border-white/8 backdrop-blur-sm md:backdrop-blur-xl"
                     style={{
                         background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
-                        backdropFilter: 'blur(20px)',
                     }}
                 >
                     {[7, 30].map(period => (

@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { ArrowRightLeft, Plus, TrendingUp, TrendingDown, CreditCard, X } from 'lucide-react';
+import { ArrowRightLeft, Plus, TrendingUp, TrendingDown, CreditCard, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
 import TransactionItem from '../components/TransactionItem';
 import GlassCard from '../components/ui/GlassCard';
 import { toast } from '../components/ui/Toast';
@@ -15,15 +14,12 @@ import BalanceCard from '../components/dashboard/BalanceCard';
 import MonthlyStats from '../components/dashboard/MonthlyStats';
 import TrendsChart from '../components/dashboard/TrendsChart';
 import QuickActions from '../components/dashboard/QuickActions';
-import AccountModal from '../components/modals/AccountModal';
-import TransactionModal from '../components/modals/TransactionModal';
 
 import { useTranslation } from 'react-i18next'; // Import hook
 
 export default function Dashboard() {
     const { t } = useTranslation(); // Init hook
-    // --- OPTIMIZED ZUSTAND SELECTORS ---
-    // Подписываемся только на те части стора, которые используются в этом компоненте
+    // Subscribe only to state slices used by this component.
     const loading = useFinanceStore(s => s.loading);
     const accounts = useFinanceStore(s => s.accounts);
     const recentTransactions = useFinanceStore(s => s.recentTransactions);
@@ -35,16 +31,16 @@ export default function Dashboard() {
     const fetchAiForecast = useFinanceStore(s => s.fetchAiForecast);
     const aiForecast = useFinanceStore(s => s.aiForecast);
     const isAiForecastLoading = useFinanceStore(s => s.isAiForecastLoading);
-
     const topExpenses = useFinanceStore(s => s.topExpenses);
     const getAccountBalance = useFinanceStore(s => s.getAccountBalance);
+    const numberFormat = new Intl.NumberFormat('ru-RU');
 
     useEffect(() => {
         fetchAiForecast();
     }, [fetchAiForecast]);
 
 
-    // --- 🔥 ЗАЩИТА: ПОКАЗЫВАЕМ СКЕЛЕТОНЫ ПРИ ЗАГРУЗКЕ ---
+    // Render skeletons while initial dashboard data is loading.
     if (loading && accounts.length === 0) {
         return (
             <div className="space-y-8 animate-fade-in pb-28 sm:pb-32 px-1">
@@ -72,11 +68,11 @@ export default function Dashboard() {
     return (
         <div className="relative overflow-hidden space-y-8 sm:space-y-10 animate-fade-in pb-40 sm:pb-48">
 
-            {/* Ambient Floating Orbs — Violet theme */}
-            <div className="ambient-orb w-72 h-72 bg-violet-500/25 -top-20 -left-20" style={{ animationDelay: '0s' }} />
-            <div className="ambient-orb w-96 h-96 bg-purple-500/15 top-1/4 -right-32" style={{ animationDelay: '5s' }} />
-            <div className="ambient-orb w-64 h-64 bg-violet-600/15 bottom-1/3 -left-16" style={{ animationDelay: '10s' }} />
-            <div className="ambient-orb w-80 h-80 bg-indigo-500/10 -bottom-20 right-1/4" style={{ animationDelay: '15s' }} />
+            {/* Ambient floating orbs */}
+            <div className="hidden sm:block ambient-orb w-72 h-72 bg-violet-500/25 -top-20 -left-20" style={{ animationDelay: '0s' }} />
+            <div className="hidden sm:block ambient-orb w-96 h-96 bg-purple-500/15 top-1/4 -right-32" style={{ animationDelay: '5s' }} />
+            <div className="hidden sm:block ambient-orb w-64 h-64 bg-violet-600/15 bottom-1/3 -left-16" style={{ animationDelay: '10s' }} />
+            <div className="hidden sm:block ambient-orb w-80 h-80 bg-indigo-500/10 -bottom-20 right-1/4" style={{ animationDelay: '15s' }} />
 
             <SmartAlerts />
             <BalanceCard />
@@ -92,7 +88,7 @@ export default function Dashboard() {
                         <TrendingUp className="text-emerald-500" size={18} strokeWidth={2.5} />
                     </div>
                     <div className="mt-3 text-2xl font-black text-zinc-900 dark:text-white">
-                        {isPrivacy ? '?????' : new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0))} {currency}
+                        {isPrivacy ? '•••••' : new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0))} {currency}
                     </div>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-2">
                         {aiForecast.message || t('ai.forecast.message', { value: new Intl.NumberFormat('ru-RU').format(Math.round(aiForecast.forecastExpense || 0)) })}
@@ -101,38 +97,47 @@ export default function Dashboard() {
             ) : null}
 
 
-            {/* Top Expense Categories */}
+                        {/* Top Expense Categories */}
             <section>
                 <div className="flex justify-between items-center mb-5 px-1">
                     <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-rose-500/10 text-base">🔥</span>
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-rose-500/10">
+                            <TrendingDown className="text-rose-500" size={18} strokeWidth={2.5} />
+                        </span>
                         {t('analytics.top_expenses')}
                     </h2>
                 </div>
-                <GlassCard>
-                    <div className="space-y-4">
+                <GlassCard className="border border-zinc-200/70 dark:border-white/10">
+                    <div className="space-y-3">
                         {topExpenses.map((cat, idx) => (
-                            <div key={idx} className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-2xl">{cat.icon}</div>
-                                        <div>
-                                            <div className="font-bold text-zinc-900 dark:text-zinc-100">{cat.name}</div>
-                                            <div className="text-xs text-zinc-400 dark:text-zinc-500">
-                                                {isPrivacy ? '•••••' : new Intl.NumberFormat('ru-RU').format(Math.round(cat.amount))} {currency}
+                            <div key={idx} className="rounded-2xl border border-zinc-200/60 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] p-3 sm:p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-8 h-8 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-black text-xs flex items-center justify-center flex-shrink-0">
+                                            {idx + 1}
+                                        </div>
+                                        <div className="text-2xl flex-shrink-0">{cat.icon}</div>
+                                        <div className="min-w-0">
+                                            <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{cat.name}</div>
+                                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                {isPrivacy ? '•••••' : numberFormat.format(Math.round(cat.amount))} {currency}
                                             </div>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-black text-error">{cat.percentage}%</div>
+                                        <div className="text-xl font-black text-rose-600 dark:text-rose-400">{cat.percentage}%</div>
                                     </div>
                                 </div>
-                                <div className="relative h-2 bg-zinc-100 rounded-full overflow-hidden">
-                                    <div style={{ width: `${cat.percentage}%` }} className={`h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500`} />
+                                <div className="relative h-2 bg-zinc-100 dark:bg-white/10 rounded-full overflow-hidden mt-3">
+                                    <div style={{ width: `${cat.percentage}%` }} className="h-full rounded-full bg-gradient-to-r from-rose-500 to-orange-500" />
                                 </div>
                             </div>
                         ))}
-                        {topExpenses.length === 0 && <div className="text-center text-zinc-400 py-4 font-medium">{t('analytics.no_expenses')}</div>}
+                        {topExpenses.length === 0 && (
+                            <div className="text-center text-zinc-500 dark:text-zinc-400 py-6 font-medium border border-dashed border-zinc-300 dark:border-white/15 rounded-2xl">
+                                {t('analytics.no_expenses')}
+                            </div>
+                        )}
                     </div>
                 </GlassCard>
             </section>
@@ -140,23 +145,33 @@ export default function Dashboard() {
             <QuickActions onAction={(type, cat) => openTxModal(type, cat)} />
             <TrendsChart />
 
-            {/* Accounts List */}
+                        {/* Accounts List */}
             <section>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-5 px-1 flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/10">
-                        <CreditCard className="text-indigo-500" size={18} strokeWidth={2.5} />
-                    </span>
-                    {t('settings.accounts')}
-                </h2>
+                <div className="flex items-center justify-between mb-5 px-1">
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/10">
+                            <CreditCard className="text-indigo-500" size={18} strokeWidth={2.5} />
+                        </span>
+                        {t('settings.accounts')}
+                    </h2>
+                    <button
+                        onClick={() => openModal('account')}
+                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-300 border border-indigo-500/25 hover:bg-indigo-500/10 transition-colors"
+                    >
+                        <Plus size={14} strokeWidth={3} />
+                        {t('common.add')}
+                    </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {accounts.map((acc) => (
                         <GlassCard
                             key={acc.id}
                             onClick={() => openTxModal('expense', null, acc.id)}
-                            className="cursor-pointer transition-all group hover:shadow-2xl hover:shadow-indigo-500/20"
+                            className="cursor-pointer transition-all group border border-zinc-200/70 dark:border-white/10"
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
+                            <div className="h-1.5 rounded-full mb-4" style={{ background: `linear-gradient(90deg, ${acc.color}66, ${acc.color})` }} />
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
                                     <div className="relative w-12 h-12 rounded-2xl p-[2px]">
                                         <div
                                             className="absolute inset-0 rounded-2xl opacity-90"
@@ -166,8 +181,8 @@ export default function Dashboard() {
                                             {acc.icon}
                                         </div>
                                     </div>
-                                    <div>
-                                        <div className="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors">
+                                    <div className="min-w-0">
+                                        <div className="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors truncate">
                                             {acc.name}
                                         </div>
                                         <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-white/10 px-2 py-1 rounded-md inline-flex mt-1">
@@ -177,8 +192,9 @@ export default function Dashboard() {
                                 </div>
                                 <div className="text-right">
                                     <div className="text-lg font-black tabular-nums text-zinc-900 dark:text-white">
-                                        {isPrivacy ? '••••' : new Intl.NumberFormat('ru-RU').format(getAccountBalance(acc.id))}
+                                        {isPrivacy ? '••••' : numberFormat.format(getAccountBalance(acc.id))}
                                     </div>
+                                    <div className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{t('dashboard.tap_to_add', 'Tap to add')}</div>
                                 </div>
                             </div>
                         </GlassCard>
@@ -186,49 +202,58 @@ export default function Dashboard() {
 
                     <button
                         onClick={() => openModal('account')}
-                        className="min-h-[120px] border-2 border-dashed border-zinc-300 rounded-2xl flex flex-col items-center justify-center text-zinc-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all font-bold group"
+                        className="min-h-[132px] border-2 border-dashed border-zinc-300 dark:border-white/20 rounded-2xl flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all font-bold group"
                     >
-                        <div className="p-3 rounded-full bg-zinc-100 group-hover:bg-primary/10 mb-2 transition-colors">
-                            <Plus size={24} className="text-zinc-400 group-hover:text-primary transition-colors" />
+                        <div className="p-3 rounded-full bg-zinc-100 dark:bg-white/10 group-hover:bg-primary/10 mb-2 transition-colors">
+                            <Plus size={24} className="text-zinc-500 dark:text-zinc-300 group-hover:text-primary transition-colors" />
                         </div>
-                        <span> {t('common.add')} {t('settings.accounts')}</span>
+                        <span>{t('common.add')} {t('settings.accounts')}</span>
                     </button>
                 </div>
             </section>
 
             {/* Recent Transactions */}
             <section>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-5 px-1 flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-violet-500/10 text-base">🕐</span>
-                    {t('dashboard.recent_activity')}
-                </h2>
-                <div className="space-y-3">
-                    {recentTransactions.length > 0 ? (
-                        recentTransactions.map(t => (
-                            <TransactionItem
-                                key={t.id}
-                                transaction={t}
-                                category={categories.find(c => c.id === t.category_id)}
-                                account={accounts.find(a => a.id === t.account_id)}
-                                counterparty={counterparties.find(cp => cp.id === t.counterparty_id)}
-                            />
-                        ))
-                    ) : (
-                        <div className="text-center py-12 text-zinc-400 border-2 border-dashed border-zinc-200 rounded-2xl bg-white/50">
-                            <p className="font-bold">No transactions</p>
-                            <p className="text-sm mt-1">{t('common.add')} first transaction</p>
-                        </div>
-                    )}
+                <div className="flex items-center justify-between mb-5 px-1">
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-violet-500/10">
+                            <ArrowRightLeft className="text-violet-500" size={18} strokeWidth={2.5} />
+                        </span>
+                        {t('dashboard.recent_activity')}
+                    </h2>
+                    <Link to="/history" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wide text-violet-600 dark:text-violet-300 hover:opacity-80 transition-opacity">
+                        {t('common.view_all', 'View all')}
+                        <ArrowUpRight size={14} strokeWidth={3} />
+                    </Link>
                 </div>
+                <GlassCard className="border border-zinc-200/70 dark:border-white/10">
+                    <div className="space-y-3">
+                        {recentTransactions.length > 0 ? (
+                            recentTransactions.map(t => (
+                                <TransactionItem
+                                    key={t.id}
+                                    transaction={t}
+                                    category={categories.find(c => c.id === t.category_id)}
+                                    account={accounts.find(a => a.id === t.account_id)}
+                                    counterparty={counterparties.find(cp => cp.id === t.counterparty_id)}
+                                />
+                            ))
+                        ) : (
+                            <div className="text-center py-12 text-zinc-500 dark:text-zinc-400 border border-dashed border-zinc-300 dark:border-white/20 rounded-2xl bg-white/50 dark:bg-white/[0.02]">
+                                <p className="font-bold">{t('history.no_transactions', 'No transactions yet')}</p>
+                                <p className="text-sm mt-1">{t('common.add')} {t('dashboard.first_transaction', 'your first transaction')}</p>
+                            </div>
+                        )}
+                    </div>
+                </GlassCard>
             </section>
 
-            {/* 🚀 FLOATING ACTION BUTTON (Desktop) */}
+            {/* Floating action button (Desktop) */}
             <DesktopFAB openModal={openModal} accounts={accounts} t={t} />
         </div>
     );
 }
 
-// 🎯 Desktop Floating Action Button Component
 function DesktopFAB({ openModal, accounts, t }) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -245,7 +270,7 @@ function DesktopFAB({ openModal, accounts, t }) {
         {
             id: 'income',
             icon: TrendingUp,
-            label: t('common.income') || 'Доход',
+            label: t('common.income') || 'Income',
             color: 'bg-emerald-500 hover:bg-emerald-600',
             shadow: 'shadow-emerald-500/40',
             onClick: () => handleAction('transaction', { initialType: 'income' })
@@ -253,7 +278,7 @@ function DesktopFAB({ openModal, accounts, t }) {
         {
             id: 'expense',
             icon: TrendingDown,
-            label: t('common.expense') || 'Расход',
+            label: t('common.expense') || 'Expense',
             color: 'bg-rose-500 hover:bg-rose-600',
             shadow: 'shadow-rose-500/40',
             onClick: () => handleAction('transaction', { initialType: 'expense' })
@@ -261,7 +286,7 @@ function DesktopFAB({ openModal, accounts, t }) {
         {
             id: 'transfer',
             icon: ArrowRightLeft,
-            label: t('common.transfer') || 'Перевод',
+            label: t('common.transfer') || 'Transfer',
             color: 'bg-indigo-500 hover:bg-indigo-600',
             shadow: 'shadow-indigo-500/40',
             onClick: () => handleAction('transfer')
@@ -297,7 +322,6 @@ function DesktopFAB({ openModal, accounts, t }) {
                 )}
             </AnimatePresence>
 
-            {/* Main FAB Button */}
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -312,3 +336,6 @@ function DesktopFAB({ openModal, accounts, t }) {
         </div>
     );
 }
+
+
+

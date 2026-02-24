@@ -243,6 +243,13 @@ exports.payDebt = async (req, res) => {
                 throw new Error('Debt not found');
             }
 
+            const remainingAmount = Number(debt.amount) - Number(debt.paid_amount);
+            if (valAmount > remainingAmount) {
+                const error = new Error('Payment exceeds remaining debt');
+                error.code = 'OVERPAYMENT';
+                throw error;
+            }
+
             await ensureAccountOwnership(userId, accountId, tx);
 
             // Логика: Я должен -> Плачу -> Расход. Мне должны -> Платят мне -> Доход.
@@ -292,6 +299,9 @@ exports.payDebt = async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error('Pay Debt Error:', error);
+        if (error.code === 'OVERPAYMENT') {
+            return res.status(400).json({ error: 'Payment exceeds remaining debt' });
+        }
         if (error.code === 'NOT_FOUND') {
             return res.status(404).json({ error: error.message });
         }

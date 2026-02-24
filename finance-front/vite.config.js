@@ -5,6 +5,20 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          charts: ['recharts'],
+          motion: ['framer-motion'],
+          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          utils: ['date-fns', 'axios', 'zustand'],
+          export_tools: ['jspdf', 'jspdf-autotable', 'xlsx']
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -13,6 +27,7 @@ export default defineConfig({
       injectRegister: 'auto',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'], // Кэшируем все ресурсы для оффлайна
+        globIgnores: ['**/assets/export_tools-*.js'], // Heavy export libs are loaded on-demand
       },
       manifest: {
         name: 'Finance Empire',

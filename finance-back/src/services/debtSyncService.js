@@ -42,7 +42,7 @@ exports.syncDebtPayment = async (debtId, paymentAmount, userId) => {
         // 3. Транзакция для синхронизации
         await prisma.$transaction(async (tx) => {
             // Обновить оба долга
-            const newPaidAmount = Number(debt.paid_amount) + Number(paymentAmount);
+            const newPaidAmount = Number(debt.paid_amount);
 
             await tx.debt.update({
                 where: { id: debtId },
@@ -61,7 +61,7 @@ exports.syncDebtPayment = async (debtId, paymentAmount, userId) => {
             });
 
             // 4. Обновить LinkedDebt
-            const newCurrentAmount = Number(linkedDebt.current_amount) - Number(paymentAmount);
+            const newCurrentAmount = Math.max(0, Number(debt.amount) - newPaidAmount);
             const isSettled = newCurrentAmount <= 0;
 
             await tx.linkedDebt.update({

@@ -5,7 +5,9 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const Sentry = require('@sentry/node');
+const swaggerUi = require('swagger-ui-express');
 const logger = require('./lib/logger');
+const { buildOpenApiSpec } = require('./docs/openapi');
 
 if (!process.env.JWT_SECRET) {
     logger.error('JWT_SECRET is required');
@@ -14,6 +16,34 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const getOpenApiSpec = (req) => {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.get('host') || `localhost:${PORT}`;
+    return buildOpenApiSpec(`${protocol}://${host}`);
+};
+
+// Swagger JSON with dynamic server URL (works for localhost, LAN and production domain)
+app.get('/api-docs.json', (req, res) => {
+    res.json(getOpenApiSpec(req));
+});
+app.get('/api/docs.json', (req, res) => {
+    res.json(getOpenApiSpec(req));
+});
+
+// Swagger UI (mounted before helmet CSP to avoid docs rendering issues)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, {
+    explorer: true,
+    swaggerOptions: {
+        url: '/api-docs.json'
+    }
+}));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(null, {
+    explorer: true,
+    swaggerOptions: {
+        url: '/api/docs.json'
+    }
+}));
 
 // Sentry initialization (if DSN provided)
 if (process.env.SENTRY_DSN) {
